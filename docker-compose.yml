@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: ninaivu-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: production_strong_password
+      POSTGRES_DB: NinaivuKalanjiyam
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./database/migrations:/docker-entrypoint-initdb.d
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ninaivu-app
+    restart: always
+    ports:
+      - "5002:5002"
+    environment:
+      NODE_ENV: production
+      PORT: 5002
+      DATABASE_URL: postgresql://postgres:production_strong_password@db:5432/NinaivuKalanjiyam
+      SARVAM_API_KEY: ${SARVAM_API_KEY}
+    depends_on:
+      - db
+    volumes:
+      - uploads_data:/app/backend/uploads/recordings
+
+volumes:
+  pgdata:
+  uploads_data:
