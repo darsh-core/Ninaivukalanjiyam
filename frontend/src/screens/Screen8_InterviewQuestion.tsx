@@ -59,7 +59,7 @@ export const Screen8_InterviewQuestion: React.FC = () => {
         return;
       }
     } catch (ttsErr) {
-      console.warn('Backend Sarvam TTS notice, falling back to speech synthesis:', ttsErr);
+      console.warn('Backend TTS notice, falling back to browser speech synthesis:', ttsErr);
     }
 
     // Fallback to browser Web Speech API

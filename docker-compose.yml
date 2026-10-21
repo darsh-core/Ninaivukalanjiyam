@@ -27,7 +27,9 @@ services:
       NODE_ENV: production
       PORT: 5002
       DATABASE_URL: postgresql://postgres:production_strong_password@db:5432/NinaivuKalanjiyam
-      SARVAM_API_KEY: ${SARVAM_API_KEY}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.0-flash}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
     depends_on:
       - db
     volumes:

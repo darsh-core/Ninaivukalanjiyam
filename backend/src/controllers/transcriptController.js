@@ -1,5 +1,5 @@
 const pool = require('../config/database');
-const sarvamService = require('../services/sarvamService');
+const geminiService = require('../services/geminiService');
 const path = require('path');
 const fs = require('fs');
 
@@ -98,12 +98,12 @@ async function regenerateTranscript(req, res) {
             const targetFilePath = path.join(__dirname, '../../uploads/recordings', targetFilename);
             if (fs.existsSync(targetFilePath)) {
                 try {
-                    const sttRes = await sarvamService.transcribeAudio(targetFilePath, targetFilename, recording.mime_type || 'audio/webm');
+                    const sttRes = await geminiService.transcribeAudio(targetFilePath, targetFilename, recording.mime_type || 'audio/webm');
                     if (sttRes && sttRes.transcript && sttRes.transcript.trim()) {
-                        regeneratedText = await sarvamService.refineTamilTranscriptToGrammaticalProse(sttRes.transcript);
+                        regeneratedText = await geminiService.refineTamilTranscriptToGrammaticalProse(sttRes.transcript);
                     }
                 } catch (sttErr) {
-                    console.warn('Regenerate Sarvam STT notice:', sttErr.message);
+                    console.warn('Regenerate Gemini STT notice:', sttErr.message);
                 }
             }
         }
@@ -115,9 +115,9 @@ async function regenerateTranscript(req, res) {
         let regeneratedEnglish = null;
         if (regeneratedText && !regeneratedText.includes('No speech detected in audio')) {
             try {
-                regeneratedEnglish = await sarvamService.translateText(regeneratedText, 'ta-IN', 'en-IN');
+                regeneratedEnglish = await geminiService.translateText(regeneratedText, 'ta-IN', 'en-IN');
             } catch (trErr) {
-                console.warn('Sarvam translation notice:', trErr.message);
+                console.warn('Gemini translation notice:', trErr.message);
             }
         }
 
@@ -163,10 +163,10 @@ async function refineTranscriptText(req, res) {
             return res.status(400).json({ success: false, message: 'Text is required for refinement.' });
         }
 
-        const refined = await sarvamService.refineTamilTranscriptToGrammaticalProse(text);
+        const refined = await geminiService.refineTamilTranscriptToGrammaticalProse(text);
         let english = null;
         try {
-            english = await sarvamService.translateText(refined, 'ta-IN', 'en-IN');
+            english = await geminiService.translateText(refined, 'ta-IN', 'en-IN');
         } catch (_) {}
 
         return res.status(200).json({

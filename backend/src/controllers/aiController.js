@@ -1,15 +1,15 @@
 const pool = require('../config/database');
-const sarvamService = require('../services/sarvamService');
+const geminiService = require('../services/geminiService');
 
 // Smart contextual follow-up questions engine
 async function getFollowUpQuestions(req, res) {
     try {
         const { question, answer, narrator_name, preferred_language = 'ta' } = req.body;
 
-        // Try Sarvam-105b live intelligent question generation first
+        // Try Gemini live intelligent question generation first
         if (question && question.trim().length > 3) {
             try {
-                const liveSuggestions = await sarvamService.generateFollowUpQuestions({
+                const liveSuggestions = await geminiService.generateFollowUpQuestions({
                     question,
                     answer,
                     narratorName: narrator_name
@@ -17,7 +17,7 @@ async function getFollowUpQuestions(req, res) {
                 if (liveSuggestions && liveSuggestions.length > 0) {
                     return res.status(200).json({
                         success: true,
-                        source: 'sarvam-105b',
+                        source: 'gemini',
                         promptContext: {
                             question,
                             answer: answer || '',
@@ -27,7 +27,7 @@ async function getFollowUpQuestions(req, res) {
                     });
                 }
             } catch (aiErr) {
-                console.warn('Sarvam-105b follow-up warning:', aiErr.message);
+                console.warn('Gemini follow-up warning:', aiErr.message);
             }
         }
 
@@ -178,7 +178,7 @@ async function extractMemories(req, res) {
 
             const promptText = `கேள்வி: ${row.question_tamil || ''}\nபதில்: ${transcript}`;
             try {
-                const aiMemories = await sarvamService.extractMemories(promptText, narratorName);
+                const aiMemories = await geminiService.extractMemories(promptText, narratorName);
                     for (const m of aiMemories) {
                         // Strict year verification: NEVER add a year unless explicitly mentioned by the speaker in the transcript
                         let verifiedYear = null;
@@ -218,8 +218,8 @@ async function extractMemories(req, res) {
                             source_excerpt: transcript.substring(0, 200)
                         });
                     }
-            } catch (sarvamErr) {
-                console.warn('Sarvam-105b memory extraction notice for recording:', sarvamErr.message);
+            } catch (geminiErr) {
+                console.warn('Gemini memory extraction notice for recording:', geminiErr.message);
             }
         }
 
@@ -354,7 +354,7 @@ Return ONLY a valid JSON array:
     "status": "confirmed"
   }
 ]`;
-                const aiResp = await sarvamService.chatCompletion([
+                const aiResp = await geminiService.chatCompletion([
                     { role: 'system', content: systemPrompt },
                     { role: 'user', content: combinedTranscripts }
                 ], 1600);
@@ -363,8 +363,8 @@ Return ONLY a valid JSON array:
                 if (jsonMatch) {
                     selectedChapters = JSON.parse(jsonMatch[0]);
                 }
-            } catch (sarvamErr) {
-                console.warn('Sarvam story synthesis notice:', sarvamErr.message);
+            } catch (geminiErr) {
+                console.warn('Gemini story synthesis notice:', geminiErr.message);
             }
         }
 
@@ -374,7 +374,7 @@ Return ONLY a valid JSON array:
                 let contentText = row.transcript_text;
                 if (language_code === 'ta' && contentText) {
                     try {
-                        contentText = await sarvamService.refineTamilTranscriptToGrammaticalProse(contentText);
+                        contentText = await geminiService.refineTamilTranscriptToGrammaticalProse(contentText);
                     } catch (_) {}
                 }
                 return {
@@ -431,7 +431,7 @@ Return ONLY a valid JSON array:
     }
 }
 
-// Text-to-Speech using Sarvam Bulbul v3
+// Text-to-Speech using Free Tamil TTS
 async function synthesizeSpeech(req, res) {
     try {
         const { text, speaker = 'kavitha' } = req.body;
@@ -439,7 +439,7 @@ async function synthesizeSpeech(req, res) {
             return res.status(400).json({ success: false, message: 'Text is required for TTS.' });
         }
 
-        const ttsRes = await sarvamService.textToSpeech(text, speaker);
+        const ttsRes = await geminiService.textToSpeech(text, speaker);
         return res.status(200).json({
             success: true,
             audioBase64: ttsRes.audioBase64,

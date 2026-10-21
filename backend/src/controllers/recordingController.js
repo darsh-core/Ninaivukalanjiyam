@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const pool = require('../config/database');
-const sarvamService = require('../services/sarvamService');
+const geminiService = require('../services/geminiService');
 
 async function getAllRecordings(req, res) {
     try {
@@ -213,19 +213,19 @@ async function uploadRecording(req, res) {
             [session_question_id]
         );
 
-        // Generate speech-to-text transcript draft via Sarvam Saaras v4 and refine into grammatically correct written Tamil
+        // Generate speech-to-text transcript draft via Gemini and refine into grammatically correct written Tamil
         let initialTranscriptText = transcript_text;
         if (!initialTranscriptText || initialTranscriptText.trim() === '') {
             try {
                 const targetFilePath = path.join(__dirname, '../../uploads/recordings', filename);
                 if (fs.existsSync(targetFilePath) && fileSizeBytes > 200) {
-                    const sttRes = await sarvamService.transcribeAudio(targetFilePath, filename, mime_type);
+                    const sttRes = await geminiService.transcribeAudio(targetFilePath, filename, mime_type);
                     if (sttRes && sttRes.transcript && sttRes.transcript.trim()) {
-                        initialTranscriptText = await sarvamService.refineTamilTranscriptToGrammaticalProse(sttRes.transcript);
+                        initialTranscriptText = await geminiService.refineTamilTranscriptToGrammaticalProse(sttRes.transcript);
                     }
                 }
             } catch (sttErr) {
-                console.warn('Sarvam Saaras STT notice:', sttErr.message);
+                console.warn('Gemini STT notice:', sttErr.message);
             }
 
             if (!initialTranscriptText || initialTranscriptText.trim() === '') {
@@ -233,16 +233,16 @@ async function uploadRecording(req, res) {
             }
         } else {
             try {
-                initialTranscriptText = await sarvamService.refineTamilTranscriptToGrammaticalProse(initialTranscriptText);
+                initialTranscriptText = await geminiService.refineTamilTranscriptToGrammaticalProse(initialTranscriptText);
             } catch (_) {}
         }
 
         let initialTranscriptEnglish = null;
         if (initialTranscriptText && !initialTranscriptText.includes('No speech detected in audio')) {
             try {
-                initialTranscriptEnglish = await sarvamService.translateText(initialTranscriptText, 'ta-IN', 'en-IN');
+                initialTranscriptEnglish = await geminiService.translateText(initialTranscriptText, 'ta-IN', 'en-IN');
             } catch (trErr) {
-                console.warn('Sarvam translation notice:', trErr.message);
+                console.warn('Gemini translation notice:', trErr.message);
             }
         }
 

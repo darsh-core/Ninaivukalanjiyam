@@ -274,7 +274,7 @@ export const Screen13_LifeStoryBuilder: React.FC = () => {
         return;
       }
     } catch (ttsErr) {
-      console.warn('Backend Sarvam TTS notice, falling back to speech synthesis:', ttsErr);
+      console.warn('Backend TTS notice, falling back to browser speech synthesis:', ttsErr);
     }
 
     if ('speechSynthesis' in window) {

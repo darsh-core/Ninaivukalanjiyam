@@ -1464,7 +1464,7 @@ export const Screen6_NarratorProfile: React.FC = () => {
               AI Transcripts Verification
             </h3>
             <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', margin: '4px 0 0' }}>
-              Sarvam AI Tamil speech transcriptions ready for archivist editorial review.
+              AI Tamil speech transcriptions ready for archivist editorial review.
             </p>
           </div>
 

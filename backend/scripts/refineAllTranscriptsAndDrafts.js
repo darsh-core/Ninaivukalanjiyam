@@ -1,5 +1,5 @@
 const pool = require('../src/config/database');
-const sarvamService = require('../src/services/sarvamService');
+const geminiService = require('../src/services/geminiService');
 
 async function main() {
     console.log('--- Starting Tamil Transcript and Story Draft Grammar Refinement ---');
@@ -20,11 +20,11 @@ async function main() {
 
         try {
             console.log(`[${i + 1}/${transcriptsRes.rows.length}] Refining transcript: ${row.id}...`);
-            const refined = await sarvamService.refineTamilTranscriptToGrammaticalProse(rawText);
+            const refined = await geminiService.refineTamilTranscriptToGrammaticalProse(rawText);
             if (refined && refined !== rawText) {
                 let english = null;
                 try {
-                    english = await sarvamService.translateText(refined, 'ta-IN', 'en-IN');
+                    english = await geminiService.translateText(refined, 'ta-IN', 'en-IN');
                 } catch (_) {}
 
                 await pool.query(
@@ -58,7 +58,7 @@ async function main() {
             if (chap.content && chap.content.length > 5) {
                 console.log(`  Refining chapter ${c + 1}: "${chap.title}"...`);
                 try {
-                    const refinedContent = await sarvamService.refineTamilTranscriptToGrammaticalProse(chap.content);
+                    const refinedContent = await geminiService.refineTamilTranscriptToGrammaticalProse(chap.content);
                     if (refinedContent && refinedContent !== chap.content) {
                         updatedChapters.push({
                             ...chap,
