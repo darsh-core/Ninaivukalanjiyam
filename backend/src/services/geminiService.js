@@ -16,7 +16,7 @@ function getApiKey() {
 }
 
 function getGeminiModel() {
-    return process.env.GEMINI_MODEL || 'gemini-2.0-flash';
+    return process.env.GEMINI_MODEL || 'gemini-3.5-flash';
 }
 
 /**
@@ -99,8 +99,9 @@ async function chatCompletion(messages, maxTokens = 1200, preferredModel = null)
 
     const modelsToTry = [
         preferredModel || getGeminiModel(),
-        'gemini-2.0-flash',
-        'gemini-1.5-flash'
+        'gemini-3.5-flash',
+        'gemini-3.5-flash-lite',
+        'gemini-3.8-flash'
     ].filter((m, i, arr) => m && arr.indexOf(m) === i);
 
     let systemInstruction = null;
