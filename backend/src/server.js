@@ -6,6 +6,7 @@ const helmet = require('helmet');
 const path = require('path');
 const fs = require('fs');
 const pool = require('./config/database');
+const ensureDatabaseExists = require('./config/ensureDatabase');
 
 const app = express();
 
@@ -93,6 +94,7 @@ const PORT = process.env.PORT || 5002;
 
 async function startServer() {
     try {
+        await ensureDatabaseExists();
         await pool.query('SELECT 1');
 
         app.listen(PORT, () => {

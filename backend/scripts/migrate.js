@@ -1,8 +1,10 @@
 const fs = require('fs');
 const path = require('path');
+const ensureDatabaseExists = require('../src/config/ensureDatabase');
 const pool = require('../src/config/database');
 
 async function runMigrations() {
+    await ensureDatabaseExists();
     console.log('--- Running NinaivuKalanjiyam Database Migrations ---');
     const migrationsDir = path.join(__dirname, '../../database/migrations');
 
