@@ -1,5 +1,6 @@
-const fs = require('fs');
 const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
+const fs = require('fs');
 const { execSync } = require('child_process');
 
 let ffmpegPath;
@@ -101,7 +102,8 @@ async function chatCompletion(messages, maxTokens = 1200, preferredModel = null)
         preferredModel || getGeminiModel(),
         'gemini-3.5-flash',
         'gemini-3.5-flash-lite',
-        'gemini-3.8-flash'
+        'gemini-3.8-flash',
+        'gemini-flash-latest'
     ].filter((m, i, arr) => m && arr.indexOf(m) === i);
 
     let systemInstruction = null;
@@ -156,9 +158,9 @@ async function chatCompletion(messages, maxTokens = 1200, preferredModel = null)
 
             if (!res.ok) {
                 const errText = await res.text();
-                // If model not found (404), try next model in list
-                if (res.status === 404 && modelsToTry.indexOf(model) < modelsToTry.length - 1) {
-                    console.warn(`Gemini model ${model} returned 404. Trying fallback model...`);
+                // If model not found (404), high demand (503), or rate limited (429), try next model in list
+                if ((res.status === 404 || res.status === 503 || res.status === 429) && modelsToTry.indexOf(model) < modelsToTry.length - 1) {
+                    console.warn(`Gemini model ${model} returned ${res.status}. Trying fallback model...`);
                     continue;
                 }
                 throw new Error(`Gemini API error (${res.status}): ${errText}`);
@@ -244,7 +246,13 @@ async function transcribeSingleClipWithGemini(buffer, filename = 'recording.webm
     else if (filename.endsWith('.ogg')) normalizedMime = 'audio/ogg';
 
     const base64Audio = buffer.toString('base64');
-    const model = getGeminiModel();
+    const modelsToTry = [
+        getGeminiModel(),
+        'gemini-3.5-flash',
+        'gemini-3-flash-preview',
+        'gemini-3.8-flash',
+        'gemini-flash-latest'
+    ].filter((m, i, arr) => m && arr.indexOf(m) === i);
 
     const promptText = `You are a professional Tamil oral archivist and audio transcriber.
 Listen to this spoken Tamil audio recording carefully.
@@ -255,54 +263,71 @@ MANDATORY RULES:
 3. Do not add conversational remarks, introductory prefixes, timestamps, or markdown quotes.
 4. If the audio is silent or contains only background noise with no speech, return: "ஒலிப்பதிவில் பேச்சு எதுவும் கண்டறியப்படவில்லை (No speech detected in audio)."`;
 
-    const url = `${GEMINI_BASE_URL}/models/${model}:generateContent?key=${apiKey}`;
-    const payload = {
-        contents: [
-            {
-                role: 'user',
-                parts: [
+    let lastError = null;
+
+    for (const model of modelsToTry) {
+        try {
+            const url = `${GEMINI_BASE_URL}/models/${model}:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [
                     {
-                        inlineData: {
-                            mimeType: normalizedMime,
-                            data: base64Audio
-                        }
-                    },
-                    {
-                        text: promptText
+                        role: 'user',
+                        parts: [
+                            {
+                                inlineData: {
+                                    mimeType: normalizedMime,
+                                    data: base64Audio
+                                }
+                            },
+                            {
+                                text: promptText
+                            }
+                        ]
                     }
-                ]
+                ],
+                generationConfig: {
+                    temperature: 0.1,
+                    maxOutputTokens: 2048
+                }
+            };
+
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+                const errText = await res.text();
+                if ((res.status === 404 || res.status === 503 || res.status === 429) && modelsToTry.indexOf(model) < modelsToTry.length - 1) {
+                    console.warn(`Gemini audio model ${model} returned ${res.status}. Trying fallback model...`);
+                    continue;
+                }
+                throw new Error(`Gemini Audio Transcription error (${res.status}): ${errText}`);
             }
-        ],
-        generationConfig: {
-            temperature: 0.1,
-            maxOutputTokens: 2048
+
+            const data = await res.json();
+            const transcriptText = (data.candidates?.[0]?.content?.parts || [])
+                .map(p => p.text)
+                .join('')
+                .trim();
+
+            return {
+                transcript: transcriptText,
+                language_code: 'ta-IN',
+                request_id: 'gemini-' + Date.now()
+            };
+        } catch (err) {
+            lastError = err;
+            if (modelsToTry.indexOf(model) < modelsToTry.length - 1) {
+                continue;
+            }
         }
-    };
-
-    const res = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-    });
-
-    if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(`Gemini Audio Transcription error (${res.status}): ${errText}`);
     }
 
-    const data = await res.json();
-    const transcriptText = (data.candidates?.[0]?.content?.parts || [])
-        .map(p => p.text)
-        .join('')
-        .trim();
-
-    return {
-        transcript: transcriptText,
-        language_code: 'ta-IN',
-        request_id: 'gemini-' + Date.now()
-    };
+    throw lastError || new Error('Failed to transcribe audio with Gemini models.');
 }
 
 /**
