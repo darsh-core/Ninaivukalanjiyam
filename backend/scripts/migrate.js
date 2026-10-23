@@ -36,6 +36,19 @@ async function runMigrations() {
         }
     }
 
+    // Restore backup data (advika, narrators, recordings, transcripts) if it exists
+    const backupFile = path.join(__dirname, '../../database/backup_data.sql');
+    if (fs.existsSync(backupFile)) {
+        console.log('\n--- Restoring data from database/backup_data.sql ---');
+        const backupSql = fs.readFileSync(backupFile, 'utf8');
+        try {
+            await pool.query(backupSql);
+            console.log('✅ Successfully restored all backup data (users, narrators, recordings, transcripts)!');
+        } catch (backupErr) {
+            console.warn('⚠️ Backup restore notice:', backupErr.message);
+        }
+    }
+
     console.log('\n--- All database migrations executed successfully! ---');
     await pool.end();
     process.exit(0);
