@@ -180,18 +180,16 @@ export const Screen15_ExportShare: React.FC = () => {
 
   const currentRec = validRecordings[podcastIndex] || null;
 
-  const stopAllAudio = () => {
+  const stopAllAudio = (preserveAnswerRef = false) => {
     if (questionAudioRef.current) {
       questionAudioRef.current.pause();
       questionAudioRef.current.onended = null;
       questionAudioRef.current.ontimeupdate = null;
-      questionAudioRef.current = null;
     }
-    if (answerAudioRef.current) {
+    if (answerAudioRef.current && !preserveAnswerRef) {
       answerAudioRef.current.pause();
       answerAudioRef.current.onended = null;
       answerAudioRef.current.ontimeupdate = null;
-      answerAudioRef.current = null;
     }
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
@@ -258,17 +256,32 @@ export const Screen15_ExportShare: React.FC = () => {
       return;
     }
 
-    stopAllAudio();
     setPodcastIndex(index);
     const rec = validRecordings[index];
+    const audioUrl = getAudioUrl(rec.storage_key);
+
+    // Ensure answerAudio is instantiated and primed during the user click gesture
+    if (!answerAudioRef.current) {
+      answerAudioRef.current = new Audio();
+    }
+    const answerAudio = answerAudioRef.current;
+    answerAudio.playbackRate = playbackSpeed;
 
     if (startPhase === 'question') {
+      stopAllAudio(true);
       const qText = (exportLanguage === 'en' ? (rec.question_english || rec.question_tamil) : (rec.question_tamil || rec.question_english)) || '';
       setPlaybackPhase('question');
       setPodcastPlaying(true);
       setCurrentTime(0);
       setTotalDuration(5);
       setIsSynthesizingQuestion(true);
+
+      // Pre-arm the answer audio during the user gesture to prevent browser autoplay block
+      if (answerAudio.src !== audioUrl) {
+        answerAudio.src = audioUrl;
+        answerAudio.preload = 'auto';
+        answerAudio.load();
+      }
 
       const proceedToAnswer = () => {
         playPodcastTrack(index, 'answer');
@@ -279,23 +292,28 @@ export const Screen15_ExportShare: React.FC = () => {
         const tts = await synthesizeSpeech(qText, 'indian_female', isEnglish ? 'en-IN' : 'ta-IN');
         setIsSynthesizingQuestion(false);
         if (tts?.audioBase64) {
-          const audio = new Audio(`data:${tts.contentType || 'audio/mpeg'};base64,${tts.audioBase64}`);
-          audio.playbackRate = playbackSpeed;
-          questionAudioRef.current = audio;
+          if (!questionAudioRef.current) {
+            questionAudioRef.current = new Audio();
+          }
+          const qAudio = questionAudioRef.current;
+          qAudio.src = `data:${tts.contentType || 'audio/mpeg'};base64,${tts.audioBase64}`;
+          qAudio.playbackRate = playbackSpeed;
 
-          audio.onloadedmetadata = () => {
-            setTotalDuration(audio.duration || 5);
+          qAudio.onloadedmetadata = () => {
+            setTotalDuration(qAudio.duration || 5);
           };
-          audio.ontimeupdate = () => {
-            setCurrentTime(audio.currentTime);
+          qAudio.ontimeupdate = () => {
+            setCurrentTime(qAudio.currentTime);
           };
-          audio.onended = () => {
+          qAudio.onended = () => {
             proceedToAnswer();
           };
-          audio.onerror = () => {
+          qAudio.onerror = () => {
             fallbackSpeech(qText, proceedToAnswer);
           };
-          await audio.play();
+          await qAudio.play().catch(() => {
+            fallbackSpeech(qText, proceedToAnswer);
+          });
           return;
         }
       } catch (ttsErr) {
@@ -305,24 +323,32 @@ export const Screen15_ExportShare: React.FC = () => {
       setIsSynthesizingQuestion(false);
       fallbackSpeech(qText, proceedToAnswer);
     } else {
-      // Answer Phase
+      // Answer Phase - Play Narrator Master Audio
+      if (questionAudioRef.current) {
+        questionAudioRef.current.pause();
+      }
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+
       setPlaybackPhase('answer');
       setPodcastPlaying(true);
       setCurrentTime(0);
       setTotalDuration(Number(rec.duration_seconds) || 10);
 
-      const audioUrl = getAudioUrl(rec.storage_key);
-      const audio = new Audio(audioUrl);
-      audio.playbackRate = playbackSpeed;
-      answerAudioRef.current = audio;
+      if (answerAudio.src !== audioUrl) {
+        answerAudio.src = audioUrl;
+      }
 
-      audio.onloadedmetadata = () => {
-        setTotalDuration(audio.duration || Number(rec.duration_seconds) || 10);
+      answerAudio.onloadedmetadata = () => {
+        if (answerAudio.duration && isFinite(answerAudio.duration)) {
+          setTotalDuration(answerAudio.duration);
+        }
       };
-      audio.ontimeupdate = () => {
-        setCurrentTime(audio.currentTime);
+      answerAudio.ontimeupdate = () => {
+        setCurrentTime(answerAudio.currentTime);
       };
-      audio.onended = () => {
+      answerAudio.onended = () => {
         // Auto-advance to next episode
         if (index + 1 < validRecordings.length) {
           playPodcastTrack(index + 1, 'question');
@@ -335,12 +361,22 @@ export const Screen15_ExportShare: React.FC = () => {
           );
         }
       };
-      audio.onerror = (e) => {
-        console.error('Audio playback error:', e);
+      answerAudio.onerror = (e) => {
+        console.error('Audio playback error for narrator:', e);
         stopAllAudio();
-        showToast('Failed to play narrator audio', 'error');
+        showToast(
+          uiLanguage === 'ta'
+            ? 'விவரிப்பாளர் ஆடியோவை இயக்க முடியவில்லை'
+            : 'Unable to play narrator recording',
+          'error'
+        );
       };
-      await audio.play().catch((e) => console.warn('Play error:', e));
+
+      try {
+        await answerAudio.play();
+      } catch (e) {
+        console.warn('Narrator play error:', e);
+      }
     }
   };
 

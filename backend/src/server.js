@@ -29,8 +29,67 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Static audio files serving
+// Robust static audio files streaming with multiple lookup paths & Range support
+const seedRecordingsDir = path.join(__dirname, '../../database/seed_recordings');
+
+app.get('/api/audio/:filename', (req, res) => {
+    const rawFilename = path.basename(req.params.filename);
+    const candidatePaths = [
+        path.join(audioUploadDir, rawFilename),
+        path.join(seedRecordingsDir, rawFilename),
+        path.join(__dirname, '../uploads', rawFilename),
+        path.join(__dirname, '../../database', rawFilename)
+    ];
+
+    const targetPath = candidatePaths.find(p => fs.existsSync(p));
+
+    if (!targetPath) {
+        console.warn(`[Audio Stream 404] File not found: ${rawFilename}`);
+        return res.status(404).json({ success: false, message: 'Audio file not found' });
+    }
+
+    const stat = fs.statSync(targetPath);
+    const fileSize = stat.size;
+    const range = req.headers.range;
+
+    const ext = path.extname(targetPath).toLowerCase();
+    let mimeType = 'audio/webm';
+    if (ext === '.wav') mimeType = 'audio/wav';
+    else if (ext === '.mp3') mimeType = 'audio/mpeg';
+    else if (ext === '.ogg') mimeType = 'audio/ogg';
+    else if (ext === '.m4a') mimeType = 'audio/mp4';
+
+    if (range) {
+        const parts = range.replace(/bytes=/, "").split("-");
+        const start = parseInt(parts[0], 10);
+        const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+        const chunksize = (end - start) + 1;
+        const file = fs.createReadStream(targetPath, { start, end });
+        const head = {
+            'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+            'Accept-Ranges': 'bytes',
+            'Content-Length': chunksize,
+            'Content-Type': mimeType,
+            'Access-Control-Allow-Origin': '*'
+        };
+        res.writeHead(206, head);
+        file.pipe(res);
+    } else {
+        const head = {
+            'Content-Length': fileSize,
+            'Content-Type': mimeType,
+            'Accept-Ranges': 'bytes',
+            'Access-Control-Allow-Origin': '*'
+        };
+        res.writeHead(200, head);
+        fs.createReadStream(targetPath).pipe(res);
+    }
+});
+
 app.use('/api/audio', express.static(audioUploadDir));
+if (fs.existsSync(seedRecordingsDir)) {
+    app.use('/api/audio', express.static(seedRecordingsDir));
+}
 
 // Routes
 const authRoutes = require('./routes/authRoutes');
