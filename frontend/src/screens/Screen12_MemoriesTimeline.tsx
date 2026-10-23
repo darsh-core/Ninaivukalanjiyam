@@ -29,7 +29,7 @@ import {
 } from '../services/api';
 import type { Narrator, LifeEvent } from '../types';
 import { AudioPlayer } from '../components/AudioPlayer';
-import { PreservationWorkflowFooter } from '../components/PreservationWorkflowFooter';
+import { PageNavigationFooter } from '../components/PageNavigationFooter';
 
 export const Screen12_MemoriesTimeline: React.FC = () => {
   const { user } = useAuth();
@@ -716,16 +716,16 @@ export const Screen12_MemoriesTimeline: React.FC = () => {
         </>
       )}
 
-      {/* 6-Step Workflow Footer */}
-      <PreservationWorkflowFooter
-        currentStep="timeline"
-        onPrev={() => setCurrentScreen('recordings')}
-        onNext={() => setCurrentScreen('story_builder')}
-        customPrevLabel={{
+      {/* Navigation Buttons: Appears only when timeline events exist */}
+      <PageNavigationFooter
+        visible={!loading && events.length > 0}
+        prevScreen="recordings"
+        prevLabel={{
           en: 'Previous: Transcripts & Recordings',
           ta: 'முந்தைய படி: ஒலிப்பதிவுகள் & உரைவடிவம்',
         }}
-        customNextLabel={{
+        nextScreen="story_builder"
+        nextLabel={{
           en: 'Next Step: LifeStory Builder',
           ta: 'அடுத்த படி: வாழ்க்கை வரலாறு',
         }}

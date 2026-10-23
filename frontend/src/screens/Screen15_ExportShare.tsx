@@ -31,7 +31,7 @@ import {
   getDownloadArchiveUrl,
 } from '../services/api';
 import type { Narrator, StoryDraft, StoryChapter, LifeEvent } from '../types';
-import { PreservationWorkflowFooter } from '../components/PreservationWorkflowFooter';
+import { PageNavigationFooter } from '../components/PageNavigationFooter';
 
 export const Screen15_ExportShare: React.FC = () => {
   const { user } = useAuth();
@@ -1130,16 +1130,15 @@ export const Screen15_ExportShare: React.FC = () => {
         </div>
       </div>
 
-      {/* 6-Step Workflow Footer */}
-      <PreservationWorkflowFooter
-        currentStep="export"
-        onPrev={() => setCurrentScreen('story_builder')}
-        onNext={() => setCurrentScreen('narrators')}
-        customPrevLabel={{
+      {/* Navigation Buttons */}
+      <PageNavigationFooter
+        prevScreen="story_builder"
+        prevLabel={{
           en: 'Previous: LifeStory Builder',
           ta: 'முந்தைய படி: வாழ்க்கை வரலாறு',
         }}
-        customNextLabel={{
+        nextScreen="narrators"
+        nextLabel={{
           en: 'Complete Archive / View Narrators',
           ta: 'ஆவணம் நிறைவு / நினைவாளர் பட்டியல்',
         }}

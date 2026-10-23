@@ -29,7 +29,7 @@ import { useAuth } from '../context/AuthContext';
 import { getNarratorById } from '../services/api';
 import type { NarratorDetail, StoryDraft, StoryChapter } from '../types';
 import { AudioPlayer } from '../components/AudioPlayer';
-import { PreservationWorkflowFooter } from '../components/PreservationWorkflowFooter';
+import { PageNavigationFooter } from '../components/PageNavigationFooter';
 
 export const Screen6_NarratorProfile: React.FC = () => {
   const { user } = useAuth();
@@ -1522,23 +1522,29 @@ export const Screen6_NarratorProfile: React.FC = () => {
         </div>
       )}
 
-      {/* 6-Step Workflow Footer */}
-      <PreservationWorkflowFooter
-        currentStep="narrators"
-        onNext={() => {
-          if (narrator) {
-            goToNewInterview(narrator);
-          } else {
-            setCurrentScreen('session_setup');
-          }
+      {/* Navigation Buttons: Previous to list, Next to Interview */}
+      <PageNavigationFooter
+        visible={Boolean(narrator)}
+        prevScreen="narrators"
+        prevLabel={{
+          en: 'Back to Narrators',
+          ta: 'நினைவாளர் பட்டியல்',
         }}
-        customNextLabel={{
+        nextScreen="session_setup"
+        nextLabel={{
           en: narrator
             ? `Next Step: Start Interview with ${narrator.full_name_english}`
             : 'Next Step: Start Interview',
           ta: narrator
             ? `அடுத்த படி: ${narrator.full_name_tamil || narrator.full_name_english} உடன் நேர்காணல்`
             : 'அடுத்த படி: நேர்காணலைத் தொடங்கு',
+        }}
+        onNext={() => {
+          if (narrator) {
+            goToNewInterview(narrator);
+          } else {
+            setCurrentScreen('session_setup');
+          }
         }}
       />
     </div>

@@ -14,7 +14,7 @@ import {
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { getNarrators } from '../services/api';
-import { PreservationWorkflowFooter } from '../components/PreservationWorkflowFooter';
+import { PageNavigationFooter } from '../components/PageNavigationFooter';
 import type { Narrator } from '../types';
 
 export const Screen4_NarratorList: React.FC = () => {
@@ -455,9 +455,18 @@ export const Screen4_NarratorList: React.FC = () => {
         </div>
       )}
 
-      {/* 6-Step Workflow Footer */}
-      <PreservationWorkflowFooter
-        currentStep="narrators"
+      {/* Next Step Button (Appears only when narrators exist) */}
+      <PageNavigationFooter
+        visible={!loading && narrators.length > 0}
+        nextScreen="session_setup"
+        nextLabel={{
+          en: activeNarrator
+            ? `Next Step: Start Interview with ${activeNarrator.full_name_english}`
+            : 'Next Step: Start Interview',
+          ta: activeNarrator
+            ? `அடுத்த படி: ${activeNarrator.full_name_tamil || activeNarrator.full_name_english} உடன் நேர்காணல்`
+            : 'அடுத்த படி: நேர்காணலைத் தொடங்கு',
+        }}
         onNext={() => {
           if (activeNarrator) {
             goToNewInterview(activeNarrator);
@@ -466,14 +475,6 @@ export const Screen4_NarratorList: React.FC = () => {
           } else {
             setIsAddNarratorOpen(true);
           }
-        }}
-        customNextLabel={{
-          en: activeNarrator
-            ? `Next Step: Start Interview with ${activeNarrator.full_name_english}`
-            : 'Next Step: Start Interview',
-          ta: activeNarrator
-            ? `அடுத்த படி: ${activeNarrator.full_name_tamil || activeNarrator.full_name_english} உடன் நேர்காணல்`
-            : 'அடுத்த படி: நேர்காணலைத் தொடங்கு',
         }}
       />
     </div>

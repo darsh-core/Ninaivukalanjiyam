@@ -14,7 +14,6 @@ import {
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { getNarrators, getAllSessions, createSession } from '../services/api';
-import { PreservationWorkflowFooter } from '../components/PreservationWorkflowFooter';
 import type { Narrator, InterviewSession } from '../types';
 
 export const Screen7_SessionSetup: React.FC = () => {
@@ -703,21 +702,6 @@ export const Screen7_SessionSetup: React.FC = () => {
           </div>
         </div>
       </form>
-
-      {/* 6-Step Workflow Footer */}
-      <PreservationWorkflowFooter
-        currentStep="interviews"
-        onPrev={() => setCurrentScreen('narrators')}
-        onNext={() => setCurrentScreen('recordings')}
-        customPrevLabel={{
-          en: 'Previous: Narrators Directory',
-          ta: 'முந்தைய படி: நினைவாளர்கள்',
-        }}
-        customNextLabel={{
-          en: 'Next Step: Recordings & Transcripts',
-          ta: 'அடுத்த படி: ஒலிப்பதிவுகள் & உரைவடிவம்',
-        }}
-      />
       </>
       )}
     </div>

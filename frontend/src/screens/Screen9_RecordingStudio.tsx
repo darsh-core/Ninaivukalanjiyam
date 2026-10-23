@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { uploadRecordingBlob } from '../services/api';
-import { PreservationWorkflowFooter } from '../components/PreservationWorkflowFooter';
+import { PageNavigationFooter } from '../components/PageNavigationFooter';
 import type { SessionQuestion } from '../types';
 
 export const Screen9_RecordingStudio: React.FC = () => {
@@ -791,12 +791,16 @@ export const Screen9_RecordingStudio: React.FC = () => {
         )}
       </div>
 
-      {/* 6-Step Workflow Footer */}
-      <PreservationWorkflowFooter
-        currentStep="interviews"
-        onPrev={() => setCurrentScreen('narrators')}
-        onNext={() => setCurrentScreen('recordings')}
-        customNextLabel={{
+      {/* Navigation Buttons: Appears ONLY after recording is saved! */}
+      <PageNavigationFooter
+        visible={recordingState === 'saved'}
+        prevScreen="interview_question"
+        prevLabel={{
+          en: 'Back to Questions',
+          ta: 'கேள்விக்குத் திரும்பு',
+        }}
+        nextScreen="recordings"
+        nextLabel={{
           en: 'Next Step: Transcripts & Recordings',
           ta: 'அடுத்த படி: ஒலிப்பதிவுகள் & உரைவடிவம்',
         }}
