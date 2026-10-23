@@ -15,6 +15,7 @@ const audioUploadDir = path.join(__dirname, '../uploads/recordings');
 if (!fs.existsSync(audioUploadDir)) {
     fs.mkdirSync(audioUploadDir, { recursive: true });
 }
+const seedRecordingsDir = path.join(__dirname, '../../database/seed_recordings');
 
 // Configure CORS and Helmet
 app.use(helmet({
@@ -29,22 +30,27 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Robust static audio files streaming with multiple lookup paths & Range support
-const seedRecordingsDir = path.join(__dirname, '../../database/seed_recordings');
+// Robust audio streaming handler with multi-path resolution and HTTP 206 Partial Content
+const streamAudioFile = (req, res, targetFilename) => {
+    if (!targetFilename) {
+        return res.status(400).json({ success: false, message: 'Filename is required' });
+    }
 
-app.get('/api/audio/:filename', (req, res) => {
-    const rawFilename = path.basename(req.params.filename);
+    const rawFilename = path.basename(targetFilename);
     const candidatePaths = [
         path.join(audioUploadDir, rawFilename),
         path.join(seedRecordingsDir, rawFilename),
         path.join(__dirname, '../uploads', rawFilename),
-        path.join(__dirname, '../../database', rawFilename)
+        path.join(__dirname, '../../database/seed_recordings', rawFilename),
+        path.join('/var/www/ninaivukalanjiyam/backend/uploads/recordings', rawFilename),
+        path.join('/home/ubuntu/Ninaivukalanjiyam/backend/uploads/recordings', rawFilename),
+        path.join('/home/ubuntu/Ninaivukalanjiyam/database/seed_recordings', rawFilename)
     ];
 
     const targetPath = candidatePaths.find(p => fs.existsSync(p));
 
     if (!targetPath) {
-        console.warn(`[Audio Stream 404] File not found: ${rawFilename}`);
+        console.warn(`[Audio Stream 404] File not found: ${rawFilename}. Checked:`, candidatePaths);
         return res.status(404).json({ success: false, message: 'Audio file not found' });
     }
 
@@ -84,6 +90,17 @@ app.get('/api/audio/:filename', (req, res) => {
         res.writeHead(200, head);
         fs.createReadStream(targetPath).pipe(res);
     }
+};
+
+// Query-param endpoint: bypasses any static file extension regex in Nginx (/api/audio-stream?file=...)
+app.get('/api/audio-stream', (req, res) => {
+    const filename = req.query.file;
+    return streamAudioFile(req, res, filename);
+});
+
+// Standard REST endpoint: /api/audio/:filename
+app.get('/api/audio/:filename', (req, res) => {
+    return streamAudioFile(req, res, req.params.filename);
 });
 
 app.use('/api/audio', express.static(audioUploadDir));

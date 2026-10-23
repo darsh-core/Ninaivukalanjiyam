@@ -437,7 +437,7 @@ export async function getExportPreview(payload: {
 export function getAudioUrl(filename: string): string {
   if (!filename) return '';
   if (filename.startsWith('http://') || filename.startsWith('https://')) return filename;
-  return `${API_BASE}/audio/${filename}`;
+  return `${API_BASE}/audio-stream?file=${encodeURIComponent(filename)}`;
 }
 
 export function getDownloadArchiveUrl(

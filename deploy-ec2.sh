@@ -25,9 +25,13 @@ cd ..
 if [ -d "/var/www/ninaivukalanjiyam/frontend/dist" ]; then
     echo "Syncing frontend build to /var/www/ninaivukalanjiyam/frontend/dist..."
     sudo cp -r frontend/dist/* /var/www/ninaivukalanjiyam/frontend/dist/ 2>/dev/null || cp -r frontend/dist/* /var/www/ninaivukalanjiyam/frontend/dist/
+    sudo mkdir -p /var/www/ninaivukalanjiyam/frontend/dist/api/audio
+    sudo cp -rn database/seed_recordings/* /var/www/ninaivukalanjiyam/frontend/dist/api/audio/ 2>/dev/null || true
 fi
 if [ -d "/var/www/html" ]; then
     sudo cp -r frontend/dist/* /var/www/html/ 2>/dev/null || true
+    sudo mkdir -p /var/www/html/api/audio
+    sudo cp -rn database/seed_recordings/* /var/www/html/api/audio/ 2>/dev/null || true
 fi
 if command -v nginx &> /dev/null; then
     echo "Reloading Nginx..."
