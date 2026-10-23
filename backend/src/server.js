@@ -81,9 +81,16 @@ app.get('/api/health', async (req, res) => {
 // Serve frontend dist in production if available
 const frontendDist = path.join(__dirname, '../../frontend/dist');
 if (fs.existsSync(frontendDist)) {
-    app.use(express.static(frontendDist));
+    app.use(express.static(frontendDist, {
+        setHeaders: (res, filePath) => {
+            if (filePath.endsWith('index.html')) {
+                res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+            }
+        }
+    }));
     app.use((req, res, next) => {
         if (req.method === 'GET' && !req.path.startsWith('/api')) {
+            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
             return res.sendFile(path.join(frontendDist, 'index.html'));
         }
         next();
