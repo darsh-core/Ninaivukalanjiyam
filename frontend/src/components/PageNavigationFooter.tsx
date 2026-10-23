@@ -46,6 +46,7 @@ export const PageNavigationFooter: React.FC<PageNavigationFooterProps> = ({
 
   return (
     <div
+      className="page-nav-footer"
       style={{
         display: 'flex',
         justifyContent: prevScreen || onPrev ? 'space-between' : 'flex-end',

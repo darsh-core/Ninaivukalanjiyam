@@ -740,31 +740,9 @@ export const Screen15_ExportShare: React.FC = () => {
       </div>
 
       {/* Search and Filters: Separate Independent Elements (Matching Screenshot Layout) */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          marginBottom: '26px',
-          flexWrap: 'wrap',
-          width: '100%',
-        }}
-      >
+      <div className="export-filter-bar">
         {/* 1. Left: Search Input Box */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            flex: '1 1 320px',
-            minWidth: '220px',
-            background: '#FFFFFF',
-            border: '1px solid #E5E7EB',
-            borderRadius: '8px',
-            padding: '9px 14px',
-            boxShadow: '0 1px 2px rgba(0, 0, 0, 0.04)',
-          }}
-        >
+        <div className="export-filter-search">
           <Search size={16} color="#4B5563" style={{ flexShrink: 0 }} />
           <input
             type="text"
@@ -788,19 +766,7 @@ export const Screen15_ExportShare: React.FC = () => {
         </div>
 
         {/* 2. Middle: Profile Icon with Narrator Select Box */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            background: '#FFFFFF',
-            border: '1px solid #E5E7EB',
-            borderRadius: '8px',
-            padding: '9px 14px',
-            boxShadow: '0 1px 2px rgba(0, 0, 0, 0.04)',
-            flexShrink: 0,
-          }}
-        >
+        <div className="export-filter-select">
           <User size={16} color="#4B5563" style={{ flexShrink: 0 }} />
           <select
             value={selectedNarratorId}
@@ -825,19 +791,7 @@ export const Screen15_ExportShare: React.FC = () => {
         </div>
 
         {/* 3. Right: Status / Format Filter Box */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            background: '#FFFFFF',
-            border: '1px solid #E5E7EB',
-            borderRadius: '8px',
-            padding: '9px 14px',
-            boxShadow: '0 1px 2px rgba(0, 0, 0, 0.04)',
-            flexShrink: 0,
-          }}
-        >
+        <div className="export-filter-select">
           <ListFilter size={16} color="#4B5563" style={{ flexShrink: 0 }} />
           <select
             value={selectedFormat}
@@ -865,21 +819,21 @@ export const Screen15_ExportShare: React.FC = () => {
 
       {/* 2 Core Export Options Grid: PDF Biography & Audio Podcast */}
       <div style={{ marginBottom: '32px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '8px' }}>
           <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--slate-taupe-dark)', margin: 0 }}>
             {uiLanguage === 'ta' ? '1. ஏற்றுமதி வடிவத்தைத் தேர்ந்தெடுக்கவும் (Export Options)' : '1. Choose Export Format'}
           </h3>
           <span className="badge-pill" style={{ fontSize: '11px' }}>Preservation & Audio Storytelling</span>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
+        <div className="export-format-grid">
           {/* Format 1: PDF Biography */}
           <div
             onClick={() => {
               setSelectedFormat('pdf');
               stopAllAudio();
             }}
-            className="modern-card"
+            className="modern-card export-format-card"
             style={{
               padding: '28px',
               borderRadius: '28px',
@@ -933,7 +887,7 @@ export const Screen15_ExportShare: React.FC = () => {
           {/* Format 2: Audio Podcast Experience */}
           <div
             onClick={() => setSelectedFormat('podcast')}
-            className="modern-card"
+            className="modern-card export-format-card"
             style={{
               padding: '28px',
               borderRadius: '28px',
@@ -996,7 +950,7 @@ export const Screen15_ExportShare: React.FC = () => {
       {/* ======================================================== */}
       {selectedFormat === 'pdf' && (
         <>
-          <div className="modern-card" style={{ padding: '30px 34px', borderRadius: '28px', marginBottom: '32px' }}>
+          <div className="modern-card export-config-card" style={{ padding: '30px 34px', borderRadius: '28px', marginBottom: '32px' }}>
             <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--slate-taupe-dark)', marginBottom: '18px' }}>
               {uiLanguage === 'ta' ? 'சேர்க்க வேண்டிய உள்ளடக்கங்கள் (Export Contents & Filtering)' : 'Export Contents & Filtering'}
             </h3>
@@ -1006,7 +960,7 @@ export const Screen15_ExportShare: React.FC = () => {
               <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--slate-taupe-dark)', marginBottom: '10px' }}>
                 {uiLanguage === 'ta' ? 'காப்பக மொழி (Archive Language):' : 'Archive Language:'}
               </label>
-              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              <div className="export-lang-buttons" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 <button
                   type="button"
                   className={exportLanguage === 'ta' ? 'btn-pill-primary' : 'btn-pill-outline'}
@@ -1233,19 +1187,10 @@ export const Screen15_ExportShare: React.FC = () => {
           </div>
 
           {/* Action Buttons: Preview, Download, Delete */}
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '16px',
-              marginBottom: '32px',
-            }}
-          >
+          <div className="export-action-bar">
             {isOwner ? (
               <button
-                className="btn-pill-outline"
+                className="btn-pill-outline export-delete-btn"
                 style={{ color: 'var(--status-red)', borderColor: 'var(--status-red)' }}
                 onClick={handleDeleteArchive}
               >
@@ -1259,9 +1204,9 @@ export const Screen15_ExportShare: React.FC = () => {
               </div>
             )}
 
-            <div style={{ display: 'flex', gap: '14px' }}>
+            <div className="export-action-group">
               <button
-                className="btn-pill-secondary"
+                className="btn-pill-secondary export-preview-btn"
                 onClick={handleOpenPreview}
                 disabled={loadingPreview}
               >
@@ -1271,7 +1216,7 @@ export const Screen15_ExportShare: React.FC = () => {
 
               {isOwner && (
                 <button
-                  className="btn-pill-primary"
+                  className="btn-pill-primary export-download-btn"
                   onClick={handleDownload}
                   disabled={downloadingPdf}
                   style={{
@@ -1359,19 +1304,7 @@ export const Screen15_ExportShare: React.FC = () => {
           ) : (
             <div>
               {/* 1. Master Podcast Player Studio Hero Card */}
-              <div
-                className="modern-card"
-                style={{
-                  padding: '36px',
-                  borderRadius: '32px',
-                  background: 'linear-gradient(145deg, #FAF8F5 0%, #FFFFFF 100%)',
-                  border: '1px solid var(--border-card)',
-                  boxShadow: '0 16px 40px rgba(94, 86, 83, 0.08)',
-                  marginBottom: '28px',
-                  position: 'relative',
-                  overflow: 'hidden',
-                }}
-              >
+              <div className="modern-card podcast-hero-card">
                 {/* Decorative background circle */}
                 <div
                   style={{
@@ -1387,17 +1320,8 @@ export const Screen15_ExportShare: React.FC = () => {
                 />
 
                 {/* Top Bar: Network Badge, Language switcher, Status Indicator */}
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
-                    gap: '12px',
-                    marginBottom: '24px',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div className="podcast-header-row">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                     <span
                       className="badge-pill"
                       style={{
@@ -1421,6 +1345,7 @@ export const Screen15_ExportShare: React.FC = () => {
 
                   {/* Equalizer & Phase Status Pill */}
                   <div
+                    className="podcast-status-pill"
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -1466,26 +1391,12 @@ export const Screen15_ExportShare: React.FC = () => {
                 </div>
 
                 {/* Narrator Title & Roles Row */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '18px', marginBottom: '28px', flexWrap: 'wrap' }}>
-                  <div
-                    style={{
-                      width: '64px',
-                      height: '64px',
-                      borderRadius: '20px',
-                      background: 'var(--accent-green)',
-                      color: '#FFFFFF',
-                      display: 'grid',
-                      placeItems: 'center',
-                      fontSize: '24px',
-                      fontWeight: 800,
-                      boxShadow: '0 8px 20px rgba(140,83,56,0.25)',
-                      flexShrink: 0,
-                    }}
-                  >
+                <div className="podcast-narrator-row">
+                  <div className="podcast-narrator-avatar">
                     {currentNarrator?.full_name_tamil?.[0] || currentNarrator?.full_name_english?.[0] || 'N'}
                   </div>
                   <div>
-                    <h2 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--slate-taupe-dark)', margin: '0 0 4px' }}>
+                    <h2 className="podcast-narrator-title">
                       {currentNarrator?.full_name_tamil || currentNarrator?.full_name_english} — {uiLanguage === 'ta' ? 'வாழ்க்கை நினைவுக் குரல் பாட்காஸ்ட்' : 'Life Story Voice Podcast'}
                     </h2>
                     <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>
@@ -1496,16 +1407,7 @@ export const Screen15_ExportShare: React.FC = () => {
                 </div>
 
                 {/* Now Playing Active Segment Box */}
-                <div
-                  style={{
-                    background: '#FFFFFF',
-                    borderRadius: '24px',
-                    padding: '24px',
-                    border: '1px solid var(--border-subtle)',
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.03)',
-                    marginBottom: '26px',
-                  }}
-                >
+                <div className="podcast-segment-card">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
                     <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--accent-green)', letterSpacing: '0.04em' }}>
                       {uiLanguage === 'ta' ? `அத்தியாயம் ${podcastIndex + 1} / ${validRecordings.length}` : `EPISODE ${podcastIndex + 1} OF ${validRecordings.length}`}
@@ -1598,17 +1500,9 @@ export const Screen15_ExportShare: React.FC = () => {
                 </div>
 
                 {/* Master Playback Controls */}
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    flexWrap: 'wrap',
-                    gap: '16px',
-                  }}
-                >
-                  {/* Left: Previous, Play/Pause, Next */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div className="podcast-controls-container">
+                  {/* Row 1 on mobile: Previous, Play/Pause, Next */}
+                  <div className="podcast-main-play-group">
                     <button
                       type="button"
                       onClick={handlePrevEpisode}
@@ -1633,16 +1527,7 @@ export const Screen15_ExportShare: React.FC = () => {
                     <button
                       type="button"
                       onClick={handleTogglePlay}
-                      className="btn-pill-primary"
-                      style={{
-                        padding: '14px 32px',
-                        fontSize: '15px',
-                        fontWeight: 800,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px',
-                        boxShadow: '0 8px 24px rgba(140, 83, 56, 0.25)',
-                      }}
+                      className="btn-pill-primary podcast-play-btn"
                     >
                       {podcastPlaying ? (
                         <>
@@ -1683,13 +1568,12 @@ export const Screen15_ExportShare: React.FC = () => {
                     </button>
                   </div>
 
-                  {/* Middle: Shortcut replay buttons */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  {/* Row 2 on mobile: Shortcut replay buttons */}
+                  <div className="podcast-shortcuts-group">
                     <button
                       type="button"
                       onClick={() => playPodcastTrack(podcastIndex, 'question')}
-                      className="btn-pill-outline"
-                      style={{ padding: '7px 14px', fontSize: '12px' }}
+                      className="btn-pill-outline podcast-shortcut-btn"
                       title="Hear just the interviewer question"
                     >
                       <Mic size={13} />
@@ -1698,8 +1582,7 @@ export const Screen15_ExportShare: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => playPodcastTrack(podcastIndex, 'answer')}
-                      className="btn-pill-outline"
-                      style={{ padding: '7px 14px', fontSize: '12px' }}
+                      className="btn-pill-outline podcast-shortcut-btn"
                       title="Hear just the narrator answer audio"
                     >
                       <Volume2 size={13} />
@@ -1707,8 +1590,8 @@ export const Screen15_ExportShare: React.FC = () => {
                     </button>
                   </div>
 
-                  {/* Right: Playback Speed Selector */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  {/* Row 3 on mobile: Playback Speed Selector */}
+                  <div className="podcast-speed-group">
                     <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)' }}>SPEED:</span>
                     {[1, 1.25, 1.5].map((spd) => (
                       <button
@@ -1734,15 +1617,7 @@ export const Screen15_ExportShare: React.FC = () => {
               </div>
 
               {/* 2. Tracklist of All Recorded Episodes */}
-              <div
-                className="modern-card"
-                style={{
-                  padding: '30px 34px',
-                  borderRadius: '28px',
-                  marginBottom: '32px',
-                  background: '#FFFFFF',
-                }}
-              >
+              <div className="modern-card podcast-tracklist-card">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '10px' }}>
                   <div>
                     <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--slate-taupe-dark)', margin: '0 0 4px' }}>
@@ -1768,21 +1643,14 @@ export const Screen15_ExportShare: React.FC = () => {
                       <div
                         key={rec.id || idx}
                         onClick={() => playPodcastTrack(idx, 'question')}
+                        className="podcast-track-item"
                         style={{
-                          padding: '16px 20px',
-                          borderRadius: '18px',
                           background: isCurrent ? '#F5F9F6' : '#FAF9F8',
                           border: isCurrent ? '2px solid var(--accent-green)' : '1px solid var(--border-subtle)',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: '16px',
-                          transition: 'all 0.15s ease',
                         }}
                       >
                         {/* Left: Play button & info */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1, minWidth: 0 }}>
+                        <div className="podcast-track-content">
                           <div
                             style={{
                               width: '40px',
@@ -1800,7 +1668,7 @@ export const Screen15_ExportShare: React.FC = () => {
                             {isCurrent && podcastPlaying ? <Pause size={16} /> : <Play size={16} style={{ marginLeft: '2px' }} />}
                           </div>
 
-                          <div style={{ minWidth: 0 }}>
+                          <div style={{ minWidth: 0, flex: 1 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px', flexWrap: 'wrap' }}>
                               <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--accent-green)' }}>
                                 #{idx + 1}
@@ -1833,12 +1701,12 @@ export const Screen15_ExportShare: React.FC = () => {
                               )}
                             </div>
 
-                            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--slate-taupe-dark)', marginBottom: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            <div className="podcast-track-question-title">
                               {rec.question_tamil || rec.question_english}
                             </div>
 
                             {rec.transcript_text && (
-                              <div style={{ fontSize: '12px', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              <div className="podcast-track-transcript-snippet">
                                 "{rec.transcript_text}"
                               </div>
                             )}
@@ -1846,7 +1714,7 @@ export const Screen15_ExportShare: React.FC = () => {
                         </div>
 
                         {/* Right: Duration badge & download */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+                        <div className="podcast-track-actions">
                           <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>
                             {formatTime(durationSec)}
                           </span>
@@ -1934,7 +1802,7 @@ export const Screen15_ExportShare: React.FC = () => {
       {isPreviewOpen && previewData && (
         <div className="modal-overlay">
           <div
-            className="modal-content"
+            className="modal-content export-modal-content"
             style={{
               maxWidth: '860px',
               borderRadius: '32px',
