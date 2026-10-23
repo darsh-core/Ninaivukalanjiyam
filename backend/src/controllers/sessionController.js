@@ -9,9 +9,9 @@ async function getAllSessions(req, res) {
                 n.full_name_tamil,
                 n.full_name_english,
                 n.preferred_name,
-                COUNT(sq.id) AS question_count,
-                COUNT(CASE WHEN sq.status = 'answered' THEN 1 END) AS answered_count,
-                COUNT(r.id) AS recording_count
+                COUNT(sq.id)::int AS question_count,
+                COUNT(CASE WHEN sq.status = 'answered' THEN 1 END)::int AS answered_count,
+                COUNT(r.id)::int AS recording_count
             FROM interview_sessions s
             JOIN narrators n ON n.id = s.narrator_id
             LEFT JOIN session_questions sq ON sq.session_id = s.id

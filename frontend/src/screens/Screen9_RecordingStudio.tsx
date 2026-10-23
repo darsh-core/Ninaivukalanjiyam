@@ -353,6 +353,8 @@ export const Screen9_RecordingStudio: React.FC = () => {
       );
 
       setRecordingState('saved');
+      window.dispatchEvent(new CustomEvent('narrator_list_updated'));
+      window.dispatchEvent(new CustomEvent('recording_saved'));
       showToast(
         uiLanguage === 'ta'
           ? `பதிவு (v${versionNumber}) வெற்றிகரமாக காப்பகத்தில் சேமிக்கப்பட்டது!`

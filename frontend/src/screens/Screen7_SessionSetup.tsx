@@ -13,8 +13,8 @@ import {
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { getNarrators, createSession } from '../services/api';
-import type { Narrator } from '../types';
+import { getNarrators, getAllSessions, createSession } from '../services/api';
+import type { Narrator, InterviewSession } from '../types';
 
 export const Screen7_SessionSetup: React.FC = () => {
   const { user } = useAuth();
@@ -32,12 +32,33 @@ export const Screen7_SessionSetup: React.FC = () => {
   const [narrators, setNarrators] = useState<Narrator[]>([]);
   const [selectedNarratorId, setSelectedNarratorId] = useState<string>(activeNarrator?.id || '');
   const [sessionNumber, setSessionNumber] = useState<number>(1);
-  const [title, setTitle] = useState('குழந்தைப் பருவ நினைவுகள் (Childhood Memories)');
+  const [title, setTitle] = useState<string>('');
   const [mode, setMode] = useState<'structured' | 'intelligent' | 'free_storytelling'>('structured');
   const [language, setLanguage] = useState<'ta' | 'en' | 'bilingual'>('ta');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Helper to auto-detect the next sequential session number for any narrator
+  const autoDetectSessionNumber = async (narratorId: string, fallbackList: Narrator[] = narrators) => {
+    if (!narratorId) {
+      setSessionNumber(1);
+      return;
+    }
+    try {
+      const existingSessions = await getAllSessions(narratorId);
+      if (existingSessions && existingSessions.length > 0) {
+        const maxNum = Math.max(...existingSessions.map((s: InterviewSession) => Number(s.session_number) || 0), 0);
+        setSessionNumber(maxNum + 1);
+      } else {
+        setSessionNumber(1);
+      }
+    } catch {
+      const found = fallbackList.find((n) => n.id === narratorId);
+      const count = parseInt(String(found?.session_count ?? 0), 10) || 0;
+      setSessionNumber(count + 1);
+    }
+  };
 
   // Filter: ONLY narrators belonging to the currently logged in user are available for recording interviews
   const userNarrators = narrators.filter((n) => {
@@ -63,15 +84,22 @@ export const Screen7_SessionSetup: React.FC = () => {
         );
       });
 
+      let initialId = '';
       if (activeNarrator?.id && owned.some((n) => n.id === activeNarrator.id)) {
+        initialId = activeNarrator.id;
         setSelectedNarratorId(activeNarrator.id);
-        setSessionNumber((activeNarrator.session_count || 0) + 1);
       } else if (owned.length > 0) {
+        initialId = owned[0].id;
         setSelectedNarratorId(owned[0].id);
         setActiveNarrator(owned[0]);
-        setSessionNumber((owned[0].session_count || 0) + 1);
       } else {
         setSelectedNarratorId('');
+      }
+
+      if (initialId) {
+        void autoDetectSessionNumber(initialId, list);
+      } else {
+        setSessionNumber(1);
       }
     } catch (err) {
       console.error(err);
@@ -90,8 +118,8 @@ export const Screen7_SessionSetup: React.FC = () => {
     const chosen = userNarrators.find((n) => n.id === id);
     if (chosen) {
       setActiveNarrator(chosen);
-      setSessionNumber((chosen.session_count || 0) + 1);
     }
+    void autoDetectSessionNumber(id);
   };
 
   const handleBeginInterview = async (e: React.FormEvent) => {
@@ -120,10 +148,11 @@ export const Screen7_SessionSetup: React.FC = () => {
     setError('');
 
     try {
+      const finalTitle = title.trim() || (uiLanguage === 'ta' ? `அமர்வு ${sessionNumber}` : `Session ${sessionNumber}`);
       const session = await createSession({
         narrator_id: narratorIdToUse,
         session_number: sessionNumber,
-        title: title.trim() || `Session ${sessionNumber}`,
+        title: finalTitle,
         interview_mode: mode,
         preferred_language: language,
         notes: notes.trim() || undefined,
@@ -328,9 +357,14 @@ export const Screen7_SessionSetup: React.FC = () => {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 3fr', gap: '18px', marginBottom: '20px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--slate-taupe-dark)', marginBottom: '8px' }}>
-                {uiLanguage === 'ta' ? 'அமர்வு எண்' : 'Session #'}
-              </label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <label style={{ fontSize: '13px', fontWeight: 700, color: 'var(--slate-taupe-dark)' }}>
+                  {uiLanguage === 'ta' ? 'அமர்வு எண்' : 'Session #'}
+                </label>
+                <span className="badge-pill" style={{ fontSize: '10px', padding: '2px 8px' }}>
+                  {uiLanguage === 'ta' ? 'தானியங்கி' : 'Auto'}
+                </span>
+              </div>
               <input
                 type="number"
                 min="1"
@@ -350,15 +384,23 @@ export const Screen7_SessionSetup: React.FC = () => {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--slate-taupe-dark)', marginBottom: '8px' }}>
-                {uiLanguage === 'ta' ? 'நேர்காணல் தலைப்பு (Interview Title)' : 'Interview Title'}
-              </label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <label style={{ fontSize: '13px', fontWeight: 700, color: 'var(--slate-taupe-dark)' }}>
+                  {uiLanguage === 'ta' ? 'நேர்காணல் தலைப்பு (Interview Title)' : 'Interview Title'}
+                </label>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                  {uiLanguage === 'ta' ? '(விருப்பமானது)' : '(Optional)'}
+                </span>
+              </div>
               <input
                 type="text"
-                required
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="எ.கா: குழந்தைப் பருவ நினைவுகள் (Childhood Memories)"
+                placeholder={
+                  uiLanguage === 'ta'
+                    ? `எ.கா: அமர்வு ${sessionNumber} - குழந்தைப் பருவம், கல்லூரி வாழ்க்கை, பணி அனுபவம்...`
+                    : `e.g. Session ${sessionNumber} - Childhood Memories, Career Journey, Family Traditions...`
+                }
                 style={{
                   width: '100%',
                   padding: '12px 20px',

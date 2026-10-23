@@ -47,9 +47,9 @@ async function getAllNarrators(filters = {}) {
             n.*,
             u.full_name AS creator_name,
             u.email AS creator_email,
-            COALESCE(s.session_count, 0) AS session_count,
-            COALESCE(r.recording_count, 0) AS recording_count,
-            COALESCE(e.event_count, 0) AS event_count,
+            COALESCE(s.session_count, 0)::int AS session_count,
+            COALESCE(r.recording_count, 0)::int AS recording_count,
+            COALESCE(e.event_count, 0)::int AS event_count,
             ls.last_session_title,
             ls.last_session_date
         FROM narrators n
@@ -105,9 +105,9 @@ async function getNarratorById(id) {
     const sessionsQuery = `
         SELECT 
             s.*,
-            COUNT(sq.id) AS total_questions,
-            COUNT(CASE WHEN sq.status = 'answered' THEN 1 END) AS answered_questions,
-            COUNT(r.id) AS recording_count
+            COUNT(sq.id)::int AS total_questions,
+            COUNT(CASE WHEN sq.status = 'answered' THEN 1 END)::int AS answered_questions,
+            COUNT(r.id)::int AS recording_count
         FROM interview_sessions s
         LEFT JOIN session_questions sq ON sq.session_id = s.id
         LEFT JOIN recordings r ON r.session_question_id = sq.id AND r.is_active = TRUE
