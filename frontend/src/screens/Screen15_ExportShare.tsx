@@ -211,8 +211,39 @@ export const Screen15_ExportShare: React.FC = () => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = exportLanguage === 'en' ? 'en-US' : 'ta-IN';
-      utter.rate = playbackSpeed * 0.95;
+      const isEnglish = exportLanguage === 'en' || /^[a-zA-Z0-9\s.,!?'"()-]+$/.test(text);
+      utter.lang = isEnglish ? 'en-IN' : 'ta-IN';
+      utter.rate = playbackSpeed * 0.92;
+      utter.pitch = 1.15; // Natural Indian female pitch
+
+      // Explicitly select Indian Female voice if available on system
+      const voices = window.speechSynthesis.getVoices();
+      if (voices && voices.length > 0) {
+        if (isEnglish) {
+          const indianFemale = voices.find((v) =>
+            (v.lang.toLowerCase().includes('en-in') || v.lang.toLowerCase().includes('in')) &&
+            (v.name.toLowerCase().includes('female') ||
+             v.name.toLowerCase().includes('heera') ||
+             v.name.toLowerCase().includes('neerja') ||
+             v.name.toLowerCase().includes('veena') ||
+             v.name.toLowerCase().includes('priya') ||
+             v.name.toLowerCase().includes('google') ||
+             v.name.toLowerCase().includes('kavitha'))
+          ) || voices.find((v) => v.lang.toLowerCase().includes('en-in'));
+          if (indianFemale) utter.voice = indianFemale;
+        } else {
+          const tamilFemale = voices.find((v) =>
+            (v.lang.toLowerCase().includes('ta') || v.lang.toLowerCase().includes('tam')) &&
+            (v.name.toLowerCase().includes('female') ||
+             v.name.toLowerCase().includes('veena') ||
+             v.name.toLowerCase().includes('kavitha') ||
+             v.name.toLowerCase().includes('vani') ||
+             v.name.toLowerCase().includes('google'))
+          ) || voices.find((v) => v.lang.toLowerCase().includes('ta') || v.lang.toLowerCase().includes('tam'));
+          if (tamilFemale) utter.voice = tamilFemale;
+        }
+      }
+
       utter.onend = onEnd;
       utter.onerror = onEnd;
       window.speechSynthesis.speak(utter);
@@ -244,7 +275,8 @@ export const Screen15_ExportShare: React.FC = () => {
       };
 
       try {
-        const tts = await synthesizeSpeech(qText, 'kavitha');
+        const isEnglish = exportLanguage === 'en' || /^[a-zA-Z0-9\s.,!?'"()-]+$/.test(qText);
+        const tts = await synthesizeSpeech(qText, 'indian_female', isEnglish ? 'en-IN' : 'ta-IN');
         setIsSynthesizingQuestion(false);
         if (tts?.audioBase64) {
           const audio = new Audio(`data:${tts.contentType || 'audio/mpeg'};base64,${tts.audioBase64}`);
@@ -1421,7 +1453,7 @@ export const Screen15_ExportShare: React.FC = () => {
                       {currentNarrator?.full_name_tamil || currentNarrator?.full_name_english} — {uiLanguage === 'ta' ? 'வாழ்க்கை நினைவுக் குரல் பாட்காஸ்ட்' : 'Life Story Voice Podcast'}
                     </h2>
                     <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>
-                      <strong>{uiLanguage === 'ta' ? 'ஒருங்கிணைப்பாளர்:' : 'Host:'}</strong> AI Interviewer (கேள்வி) &nbsp;·&nbsp;{' '}
+                      <strong>{uiLanguage === 'ta' ? 'ஒருங்கிணைப்பாளர்:' : 'Host:'}</strong> AI Interviewer (Indian Female Voice) &nbsp;·&nbsp;{' '}
                       <strong>{uiLanguage === 'ta' ? 'நினைவாளர்:' : 'Guest:'}</strong> {currentNarrator?.full_name_tamil || currentNarrator?.full_name_english} (பதில்)
                     </p>
                   </div>

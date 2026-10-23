@@ -523,12 +523,12 @@ Return ONLY a valid JSON array in pure literary Tamil:
 // Text-to-Speech using Free Tamil TTS
 async function synthesizeSpeech(req, res) {
     try {
-        const { text, speaker = 'kavitha' } = req.body;
+        const { text, speaker = 'indian_female', targetLang = null } = req.body;
         if (!text || text.trim() === '') {
             return res.status(400).json({ success: false, message: 'Text is required for TTS.' });
         }
 
-        const ttsRes = await geminiService.textToSpeech(text, speaker);
+        const ttsRes = await geminiService.textToSpeech(text, speaker, targetLang);
         return res.status(200).json({
             success: true,
             audioBase64: ttsRes.audioBase64,

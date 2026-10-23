@@ -50,9 +50,9 @@ export const Screen8_InterviewQuestion: React.FC = () => {
 
     try {
       setIsPlayingTTS(true);
-      const res = await synthesizeSpeech(currentQuestion.question_tamil, 'kavitha');
+      const res = await synthesizeSpeech(currentQuestion.question_tamil, 'indian_female', 'ta-IN');
       if (res && res.audioBase64) {
-        const audio = new Audio(`data:audio/wav;base64,${res.audioBase64}`);
+        const audio = new Audio(`data:audio/mpeg;base64,${res.audioBase64}`);
         audio.onended = () => setIsPlayingTTS(false);
         audio.onerror = () => setIsPlayingTTS(false);
         await audio.play();
@@ -62,12 +62,27 @@ export const Screen8_InterviewQuestion: React.FC = () => {
       console.warn('Backend TTS notice, falling back to browser speech synthesis:', ttsErr);
     }
 
-    // Fallback to browser Web Speech API
+    // Fallback to browser Web Speech API with Indian female voice
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(currentQuestion.question_tamil);
       utterance.lang = 'ta-IN';
-      utterance.rate = 0.9;
+      utterance.rate = 0.92;
+      utterance.pitch = 1.15;
+
+      const voices = window.speechSynthesis.getVoices();
+      if (voices && voices.length > 0) {
+        const tamilFemale = voices.find((v) =>
+          (v.lang.toLowerCase().includes('ta') || v.lang.toLowerCase().includes('tam')) &&
+          (v.name.toLowerCase().includes('female') ||
+           v.name.toLowerCase().includes('veena') ||
+           v.name.toLowerCase().includes('kavitha') ||
+           v.name.toLowerCase().includes('vani') ||
+           v.name.toLowerCase().includes('google'))
+        ) || voices.find((v) => v.lang.toLowerCase().includes('ta') || v.lang.toLowerCase().includes('tam'));
+        if (tamilFemale) utterance.voice = tamilFemale;
+      }
+
       utterance.onstart = () => setIsPlayingTTS(true);
       utterance.onend = () => setIsPlayingTTS(false);
       utterance.onerror = () => setIsPlayingTTS(false);

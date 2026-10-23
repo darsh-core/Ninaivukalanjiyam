@@ -332,11 +332,15 @@ export async function generateStoryDraftWithAI(narratorId: string, languageCode 
   return data.data;
 }
 
-export async function synthesizeSpeech(text: string, speaker = 'kavitha'): Promise<{ audioBase64: string; contentType: string }> {
+export async function synthesizeSpeech(
+  text: string,
+  speaker = 'indian_female',
+  targetLang?: string
+): Promise<{ audioBase64: string; contentType: string }> {
   const res = await fetch(`${API_BASE}/ai/text-to-speech`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text, speaker }),
+    body: JSON.stringify({ text, speaker, targetLang }),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || 'Failed to synthesize speech');

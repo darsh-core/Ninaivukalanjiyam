@@ -477,18 +477,23 @@ ${text}`;
 }
 
 /**
- * Free Text-to-Speech using Google Translate TTS service
- * High-quality spoken Tamil output without any API subscription
+ * Free Text-to-Speech using Google Indian Female TTS voice
+ * High-quality spoken Indian Tamil / Indian English output
  * @param {string} text
- * @param {string} speaker - Optional speaker parameter (kept for signature compatibility)
+ * @param {string} speaker - 'indian_female'
+ * @param {string} targetLang - Optional 'ta-IN' or 'en-IN'
  * @returns {Promise<{ audioBase64: string, contentType: string }>}
  */
-async function textToSpeech(text, speaker = 'kavitha') {
+async function textToSpeech(text, speaker = 'indian_female', targetLang = null) {
     if (!text || text.trim() === '') {
         throw new Error('Text is required for text-to-speech.');
     }
 
     const cleanText = text.trim();
+
+    // Automatically detect language: Indian English (en-IN) if English text, otherwise Indian Tamil (ta-IN)
+    const isEnglish = targetLang === 'en' || targetLang === 'en-IN' || (/^[a-zA-Z0-9\s.,!?'"()-]+$/.test(cleanText));
+    const langCode = isEnglish ? 'en-IN' : 'ta-IN';
 
     // Split text into segments of under 180 chars for Google Translate TTS
     const sentences = cleanText.match(/[^.!?\n]+[.!?\n]*/g) || [cleanText];
@@ -523,7 +528,7 @@ async function textToSpeech(text, speaker = 'kavitha') {
 
     const buffers = [];
     for (const seg of segments.slice(0, 10)) { // limit to first 10 segments for fast response
-        const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(seg)}&tl=ta&client=tw-ob`;
+        const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(seg)}&tl=${langCode}&client=tw-ob`;
         try {
             const res = await fetch(url, {
                 headers: {
