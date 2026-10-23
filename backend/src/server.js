@@ -179,16 +179,14 @@ async function startServer() {
     try {
         await ensureDatabaseExists();
         await pool.query('SELECT 1');
-
-        app.listen(PORT, () => {
-            console.log(`Server running on http://localhost:${PORT}`);
-            console.log('PostgreSQL connected successfully');
-        });
+        console.log('PostgreSQL connected successfully');
     } catch (error) {
-        console.error('Unable to connect to PostgreSQL:', error.message);
-        await pool.end();
-        process.exit(1);
+        console.warn('PostgreSQL connection notice:', error.message);
     }
+
+    app.listen(PORT, () => {
+        console.log(`Server running on http://localhost:${PORT}`);
+    });
 }
 
 startServer();
