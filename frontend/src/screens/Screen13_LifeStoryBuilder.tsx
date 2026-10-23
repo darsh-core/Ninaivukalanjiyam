@@ -241,10 +241,15 @@ export const Screen13_LifeStoryBuilder: React.FC = () => {
     try {
       setRefiningChapterId(chapterId);
       const res = await refineTranscriptProse(currentContent);
-      if (res.refined_text) {
-        updateChapterContent(chapterId, res.refined_text);
+      const refinedTarget = languageCode === 'en'
+        ? (res.refined_english || res.refined_text)
+        : res.refined_text;
+      if (refinedTarget) {
+        updateChapterContent(chapterId, refinedTarget);
         showToast(
-          uiLanguage === 'ta'
+          languageCode === 'en'
+            ? 'Chapter polished into refined written English prose!'
+            : uiLanguage === 'ta'
             ? 'அத்தியாயம் இலக்கண ரீதியாகச் செப்பனிடப்பட்டு நயமான உரைநடையாக மாற்றப்பட்டது!'
             : 'Chapter refined into grammatically correct written Tamil prose!'
         );
@@ -785,13 +790,13 @@ export const Screen13_LifeStoryBuilder: React.FC = () => {
                       style={{ padding: '6px 14px', fontSize: '12px', background: '#F4ECE4', borderColor: '#E5D6C5', color: '#6A432D', fontWeight: 700 }}
                       onClick={() => handleRefineChapter(chapter.id, chapter.content)}
                       disabled={refiningChapterId === chapter.id || !chapter.content}
-                      title="பேச்சு வழக்கினை இலக்கண ரீதியான தூய எழுத்துத் தமிழாக மாற்றும்"
+                      title={languageCode === 'en' ? 'Polish into natural, literary English prose' : 'பேச்சு வழக்கினை இலக்கண ரீதியான தூய எழுத்துத் தமிழாக மாற்றும்'}
                     >
                       <Sparkles size={13} color="#8C5338" />
                       <span>
                         {refiningChapterId === chapter.id
-                          ? (uiLanguage === 'ta' ? 'மாற்றுகிறது...' : 'Refining...')
-                          : (uiLanguage === 'ta' ? 'இலக்கணச் சீரமைப்பு' : 'Refine to Written Prose')}
+                          ? (languageCode === 'en' ? 'Polishing...' : uiLanguage === 'ta' ? 'மாற்றுகிறது...' : 'Refining...')
+                          : (languageCode === 'en' ? 'Polish English Prose' : uiLanguage === 'ta' ? 'இலக்கணச் சீரமைப்பு' : 'Refine to Written Prose')}
                       </span>
                     </button>
 

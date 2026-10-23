@@ -1,4 +1,5 @@
 const pool = require('../config/database');
+const geminiService = require('../services/geminiService');
 
 async function getStoryDrafts(req, res) {
     try {
@@ -10,10 +11,46 @@ async function getStoryDrafts(req, res) {
             ORDER BY updated_at DESC;
         `;
         const result = await pool.query(query, [narratorId]);
+        const drafts = result.rows;
+
+        // Auto-heal any English drafts that have legacy Tamil chapters
+        for (const draft of drafts) {
+            if (draft.language_code === 'en' && Array.isArray(draft.chapters)) {
+                let hasTamil = false;
+                for (const ch of draft.chapters) {
+                    if ((ch.title && /[\u0B80-\u0BFF]/.test(ch.title)) || (ch.content && /[\u0B80-\u0BFF]/.test(ch.content))) {
+                        hasTamil = true;
+                        break;
+                    }
+                }
+                if (hasTamil) {
+                    for (const ch of draft.chapters) {
+                        if (ch.title && /[\u0B80-\u0BFF]/.test(ch.title)) {
+                            try {
+                                ch.title = await geminiService.translateText(ch.title, 'ta-IN', 'en-IN');
+                            } catch (_) {}
+                        }
+                        if (ch.content && /[\u0B80-\u0BFF]/.test(ch.content)) {
+                            try {
+                                ch.content = await geminiService.translateText(ch.content, 'ta-IN', 'en-IN');
+                            } catch (_) {}
+                        }
+                    }
+                    try {
+                        await pool.query(
+                            'UPDATE story_drafts SET chapters = $1, updated_at = NOW() WHERE id = $2',
+                            [JSON.stringify(draft.chapters), draft.id]
+                        );
+                    } catch (dbErr) {
+                        console.warn('Auto-heal draft update warning:', dbErr.message);
+                    }
+                }
+            }
+        }
 
         return res.status(200).json({
             success: true,
-            data: result.rows
+            data: drafts
         });
     } catch (error) {
         console.error('Get story drafts error:', error);

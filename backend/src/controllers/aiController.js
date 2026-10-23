@@ -284,6 +284,7 @@ async function generateStoryDraft(req, res) {
     try {
         const { narratorId } = req.params;
         const { language_code = 'ta' } = req.body;
+        const isEnglish = language_code === 'en';
 
         const narratorRes = await pool.query('SELECT * FROM narrators WHERE id = $1', [narratorId]);
         if (narratorRes.rows.length === 0) {
@@ -291,13 +292,14 @@ async function generateStoryDraft(req, res) {
         }
         const narrator = narratorRes.rows[0];
 
-        // Fetch transcripts from actual answered questions
+        // Fetch transcripts from actual answered questions (including English translation if available)
         const transcriptsRes = await pool.query(`
             SELECT 
                 r.id AS recording_id, 
                 sq.question_tamil,
                 sq.question_english,
-                t.transcript_text
+                t.transcript_text,
+                t.transcript_text_english
             FROM recordings r
             JOIN session_questions sq ON sq.id = r.session_question_id
             JOIN interview_sessions s ON s.id = sq.session_id
@@ -318,7 +320,7 @@ async function generateStoryDraft(req, res) {
         if (transcriptsRes.rows.length === 0 && eventsRes.rows.length === 0) {
             return res.status(400).json({
                 success: false,
-                message: language_code === 'en'
+                message: isEnglish
                     ? 'No recordings or verified memories found. Please record interview answers first to build a biography.'
                     : 'ஒலிப்பதிவுகள் அல்லது உறுதிசெய்யப்பட்ட நினைவுகள் எதுவும் இல்லை. வாழ்க்கை வரலாறு உருவாக்க முதலில் நேர்காணல் பதில்களைப் பதிவு செய்யவும்.'
             });
@@ -328,15 +330,44 @@ async function generateStoryDraft(req, res) {
         const englishName = narrator.full_name_english || narrator.full_name_tamil || 'Narrator';
 
         let selectedChapters = [];
-        const combinedTranscripts = transcriptsRes.rows
-            .filter(r => r.transcript_text && r.transcript_text.trim())
-            .map((r, i) => `கேள்வி ${i + 1}: ${r.question_tamil}\nபதில்: ${r.transcript_text}`)
-            .join('\n\n');
+
+        // Prepare combined transcripts for the LLM
+        const combinedTranscripts = isEnglish
+            ? transcriptsRes.rows
+                .filter(r => (r.transcript_text_english && r.transcript_text_english.trim()) || (r.transcript_text && r.transcript_text.trim()))
+                .map((r, i) => `Question ${i + 1}: ${r.question_english || r.question_tamil}\nAnswer: ${r.transcript_text_english || r.transcript_text}`)
+                .join('\n\n')
+            : transcriptsRes.rows
+                .filter(r => r.transcript_text && r.transcript_text.trim())
+                .map((r, i) => `கேள்வி ${i + 1}: ${r.question_tamil}\nபதில்: ${r.transcript_text}`)
+                .join('\n\n');
 
         if (combinedTranscripts.length > 20) {
             try {
-                const systemPrompt = `You are an acclaimed Tamil family biographer and literary author for "Ninaivu Kalanjiyam".
-Synthesize the elder "${name}"'s recorded interview answers into cohesive, beautifully structured biographical chapters.
+                let systemPrompt = '';
+                if (isEnglish) {
+                    systemPrompt = `You are an acclaimed English family biographer writing a prestigious printed biography book for "Ninaivu Kalanjiyam" (Family Heritage Archive).
+Synthesize the elder "${englishName}"'s recorded interview memories into cohesive, beautifully written English biographical chapters.
+STRICT LANGUAGE & STYLE RULES:
+1. PURE ENGLISH PROSE:
+   - Everything (chapter titles and chapter content) MUST BE WRITTEN 100% IN NATURAL, ELEGANT ENGLISH PROSE.
+   - Do NOT include any Tamil script, Tamil words, or Tamil characters anywhere in the title or content.
+   - Translate all Tamil cultural terms and relationships respectfully into natural English (e.g. "Joyful Childhood in the Village", "Family Traditions and Ancestral Roots").
+   - Write in a warm, dignified, and literary biographical voice suitable for a published English family history book.
+2. STRICT FACTUAL FIDELITY:
+   - Only include facts, places, memories, family names, and milestones that the elder ACTUALLY mentioned in their answers. Do NOT invent outside people or events.
+Return ONLY a valid JSON array:
+[
+  {
+    "id": "c1",
+    "title": "Chapter Title in English (e.g. 1. Joyful Childhood and Formative Years)",
+    "content": "Full narrative story written in fluent, literary English prose...",
+    "status": "confirmed"
+  }
+]`;
+                } else {
+                    systemPrompt = `You are an acclaimed Tamil family biographer and literary author for "Ninaivu Kalanjiyam".
+Synthesize the elder "${name}"'s recorded interview answers into cohesive, beautifully structured biographical chapters in literary Tamil.
 CRITICAL GRAMMAR AND STYLE RULES:
 1. STRICTLY NO SPEECH VERSE OR COLLOQUIAL SPOKEN TAMIL (பேச்சு வழக்கு முற்றிலும் கூடாது).
    - The writing must be in grammatically correct, refined written Tamil prose (இலக்கண ரீதியாகச் சரியான நயமான எழுத்துத் தமிழ் உரைநடை).
@@ -344,16 +375,17 @@ CRITICAL GRAMMAR AND STYLE RULES:
    - Ensure the prose is elegant, respectful, and dignified to read in a printed family history book.
 2. STRICT FACTUAL FIDELITY:
    - Only include facts, places, memories, family names, and life milestones that the elder ACTUALLY mentioned in their answers. Do NOT invent outside places or people.
-Language to write in: ${language_code === 'en' ? 'English' : 'Tamil'}.
-Return ONLY a valid JSON array:
+Return ONLY a valid JSON array in pure literary Tamil:
 [
   {
     "id": "c1",
-    "title": "அத்தியாயத் தலைப்பு (Chapter Title)",
+    "title": "அத்தியாயத் தலைப்பு (Chapter Title in Tamil)",
     "content": "இலக்கண ரீதியாகச் சரியான நயமான தமிழ் உரைநடை பத்தி...",
     "status": "confirmed"
   }
 ]`;
+                }
+
                 const aiResp = await geminiService.chatCompletion([
                     { role: 'system', content: systemPrompt },
                     { role: 'user', content: combinedTranscripts }
@@ -368,36 +400,76 @@ Return ONLY a valid JSON array:
             }
         }
 
-        // If AI generation was unavailable, map directly from their actual recordings and questions with grammatical refinement
+        // Post-processing safeguard for English edition: ensure no Tamil text slipped into English edition
+        if (isEnglish && selectedChapters && selectedChapters.length > 0) {
+            for (const ch of selectedChapters) {
+                if (ch.title && /[\u0B80-\u0BFF]/.test(ch.title)) {
+                    try {
+                        ch.title = await geminiService.translateText(ch.title, 'ta-IN', 'en-IN');
+                    } catch (_) {}
+                }
+                if (ch.content && /[\u0B80-\u0BFF]/.test(ch.content)) {
+                    try {
+                        ch.content = await geminiService.translateText(ch.content, 'ta-IN', 'en-IN');
+                    } catch (_) {}
+                }
+            }
+        }
+
+        // If AI generation was unavailable, map directly from actual recordings and questions
         if (!selectedChapters || selectedChapters.length === 0) {
             selectedChapters = await Promise.all(transcriptsRes.rows.map(async (row, idx) => {
-                let contentText = row.transcript_text;
-                if (language_code === 'ta' && contentText) {
+                let contentText = isEnglish ? (row.transcript_text_english || row.transcript_text) : row.transcript_text;
+                if (isEnglish) {
+                    if (contentText && /[\u0B80-\u0BFF]/.test(contentText)) {
+                        try {
+                            contentText = await geminiService.translateText(contentText, 'ta-IN', 'en-IN');
+                        } catch (_) {}
+                    }
+                } else if (contentText) {
                     try {
                         contentText = await geminiService.refineTamilTranscriptToGrammaticalProse(contentText);
                     } catch (_) {}
                 }
+
+                const titleText = isEnglish
+                    ? `${idx + 1}. ${row.question_english || 'Chapter ' + (idx + 1)}`
+                    : `${idx + 1}. ${row.question_tamil}`;
+
                 return {
                     id: `c${idx + 1}`,
-                    title: `${idx + 1}. ${language_code === 'en' ? (row.question_english || row.question_tamil) : row.question_tamil}`,
-                    content: contentText,
+                    title: titleText,
+                    content: contentText || '',
                     status: 'confirmed',
                     recording_ids: [row.recording_id]
                 };
             }));
 
             // Append timeline events if available
-            eventsRes.rows.forEach((ev, idx) => {
+            for (let idx = 0; idx < eventsRes.rows.length; idx++) {
+                const ev = eventsRes.rows[idx];
+                let evTitle = ev.title;
+                let evDesc = ev.description || '';
+                if (isEnglish) {
+                    try {
+                        if (evTitle && /[\u0B80-\u0BFF]/.test(evTitle)) {
+                            evTitle = await geminiService.translateText(evTitle, 'ta-IN', 'en-IN');
+                        }
+                        if (evDesc && /[\u0B80-\u0BFF]/.test(evDesc)) {
+                            evDesc = await geminiService.translateText(evDesc, 'ta-IN', 'en-IN');
+                        }
+                    } catch (_) {}
+                }
                 selectedChapters.push({
                     id: `ev${idx + 1}`,
-                    title: `${selectedChapters.length + 1}. ${ev.title} (${ev.approximate_year || ''})`,
-                    content: ev.description || '',
+                    title: `${selectedChapters.length + 1}. ${evTitle} (${ev.approximate_year || ''})`,
+                    content: evDesc,
                     status: 'confirmed'
                 });
-            });
+            }
         }
 
-        const draftTitle = language_code === 'en'
+        const draftTitle = isEnglish
             ? `${englishName}'s Life Biography — NinaivuKalanjiyam`
             : `${name} அவர்களின் வாழ்க்கை வரலாறு — நினைவுக் களஞ்சியம்`;
 
