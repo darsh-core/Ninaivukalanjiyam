@@ -21,6 +21,19 @@ npm ci || npm install
 npm run build
 cd ..
 
+# Sync dist with Nginx webroot if /var/www paths exist
+if [ -d "/var/www/ninaivukalanjiyam/frontend/dist" ]; then
+    echo "Syncing frontend build to /var/www/ninaivukalanjiyam/frontend/dist..."
+    sudo cp -r frontend/dist/* /var/www/ninaivukalanjiyam/frontend/dist/ 2>/dev/null || cp -r frontend/dist/* /var/www/ninaivukalanjiyam/frontend/dist/
+fi
+if [ -d "/var/www/html" ]; then
+    sudo cp -r frontend/dist/* /var/www/html/ 2>/dev/null || true
+fi
+if command -v nginx &> /dev/null; then
+    echo "Reloading Nginx..."
+    sudo systemctl reload nginx 2>/dev/null || true
+fi
+
 # 3. Backend Setup & Storage Sync
 echo -e "\n⚙️ Installing Backend Dependencies & Syncing Assets..."
 cd backend
