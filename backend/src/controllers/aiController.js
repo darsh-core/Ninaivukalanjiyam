@@ -176,6 +176,17 @@ async function extractMemories(req, res) {
                 continue;
             }
 
+            // Skip if this recording has already had life memories extracted
+            const alreadyExtracted = await pool.query(`
+                SELECT 1 FROM event_sources es
+                JOIN life_events le ON le.id = es.event_id
+                WHERE es.recording_id = $1 AND le.narrator_id = $2
+            `, [row.recording_id, narratorId]);
+
+            if (alreadyExtracted.rows.length > 0) {
+                continue;
+            }
+
             const promptText = `கேள்வி: ${row.question_tamil || ''}\nபதில்: ${transcript}`;
             try {
                 const aiMemories = await geminiService.extractMemories(promptText, narratorName);
@@ -225,11 +236,17 @@ async function extractMemories(req, res) {
 
         let createdEvents = [];
         for (const item of candidateMemories) {
-            // Check if similar title already exists
-            const existing = await pool.query(
-                'SELECT id FROM life_events WHERE narrator_id = $1 AND title = $2',
-                [narratorId, item.title]
-            );
+            // Check if similar memory already exists by matching full title, Tamil title, English title, or source excerpt
+            const existing = await pool.query(`
+                SELECT id FROM life_events 
+                WHERE narrator_id = $1 
+                  AND (
+                    title = $2 
+                    OR (title_tamil IS NOT NULL AND $3 IS NOT NULL AND title_tamil = $3)
+                    OR (title_english IS NOT NULL AND $4 IS NOT NULL AND LOWER(title_english) = LOWER($4))
+                    OR description = $5
+                  )
+            `, [narratorId, item.title, item.title_tamil, item.title_english, item.description]);
 
             if (existing.rows.length === 0) {
                 const insertRes = await pool.query(`

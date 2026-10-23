@@ -5,7 +5,7 @@ async function getTimelineByNarrator(req, res) {
         const { narratorId } = req.params;
 
         const query = `
-            SELECT 
+            SELECT DISTINCT ON (le.id)
                 le.*,
                 es.recording_id,
                 es.transcript_id,
@@ -16,14 +16,35 @@ async function getTimelineByNarrator(req, res) {
             LEFT JOIN event_sources es ON es.event_id = le.id
             LEFT JOIN recordings r ON r.id = es.recording_id
             WHERE le.narrator_id = $1
-            ORDER BY le.approximate_year ASC NULLS LAST, le.created_at ASC;
+            ORDER BY le.id, le.created_at ASC;
         `;
         const result = await pool.query(query, [narratorId]);
 
+        // Sort chronologically and deduplicate semantically
+        const sortedRows = result.rows.sort((a, b) => {
+            const yA = a.approximate_year ?? 9999;
+            const yB = b.approximate_year ?? 9999;
+            if (yA !== yB) return yA - yB;
+            return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        });
+
+        const seenKeys = new Set();
+        const uniqueEvents = [];
+        for (const ev of sortedRows) {
+            const taKey = (ev.title_tamil || '').trim().toLowerCase();
+            const sourceKey = (ev.source_excerpt || '').trim().slice(0, 80);
+            const dedupKey = taKey ? `ta:${taKey}` : (sourceKey ? `src:${sourceKey}` : `id:${ev.id}`);
+
+            if (!seenKeys.has(dedupKey)) {
+                seenKeys.add(dedupKey);
+                uniqueEvents.push(ev);
+            }
+        }
+
         return res.status(200).json({
             success: true,
-            count: result.rows.length,
-            data: result.rows
+            count: uniqueEvents.length,
+            data: uniqueEvents
         });
     } catch (error) {
         console.error('Get timeline error:', error);

@@ -151,6 +151,8 @@ export interface LifeEvent {
   id: string;
   narrator_id: string;
   title: string;
+  title_tamil?: string | null;
+  title_english?: string | null;
   description?: string | null;
   approximate_year?: number | null;
   date_precision: 'exact' | 'year' | 'approximate' | 'relative' | 'unknown';

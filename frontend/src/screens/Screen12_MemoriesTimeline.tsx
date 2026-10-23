@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Clock,
   Sparkles,
@@ -234,6 +234,31 @@ export const Screen12_MemoriesTimeline: React.FC = () => {
       alert('Failed to add event');
     }
   };
+
+  // Semantic deduplication & filtering for timeline events
+  const displayedEvents = useMemo(() => {
+    const seen = new Set<string>();
+    return events.filter((ev) => {
+      const q = search.toLowerCase().trim();
+      const matchesSearch =
+        !q ||
+        ev.title.toLowerCase().includes(q) ||
+        (ev.description && ev.description.toLowerCase().includes(q)) ||
+        (ev.place_name && ev.place_name.toLowerCase().includes(q)) ||
+        (ev.approximate_year && ev.approximate_year.toString().includes(q));
+      const matchesStatus =
+        statusFilter === 'all' || ev.extraction_status === statusFilter;
+      if (!matchesSearch || !matchesStatus) return false;
+
+      // In-memory semantic deduplication safeguard
+      const taKey = (ev.title_tamil || '').trim().toLowerCase();
+      const srcKey = (ev.source_excerpt || '').trim().slice(0, 80);
+      const dedupKey = taKey ? `ta:${taKey}` : (srcKey ? `src:${srcKey}` : `id:${ev.id}`);
+      if (seen.has(dedupKey)) return false;
+      seen.add(dedupKey);
+      return true;
+    });
+  }, [events, search, statusFilter]);
 
   return (
     <div className="page-container" style={{ maxWidth: '960px' }}>
@@ -502,18 +527,7 @@ export const Screen12_MemoriesTimeline: React.FC = () => {
             gap: '26px',
           }}
         >
-          {events.filter((ev) => {
-            const q = search.toLowerCase().trim();
-            const matchesSearch =
-              !q ||
-              ev.title.toLowerCase().includes(q) ||
-              (ev.description && ev.description.toLowerCase().includes(q)) ||
-              (ev.place_name && ev.place_name.toLowerCase().includes(q)) ||
-              (ev.approximate_year && ev.approximate_year.toString().includes(q));
-            const matchesStatus =
-              statusFilter === 'all' || ev.extraction_status === statusFilter;
-            return matchesSearch && matchesStatus;
-          }).map((event) => (
+          {displayedEvents.map((event) => (
             <div key={event.id} style={{ position: 'relative' }}>
               {/* Timeline Pin Node */}
               <div
