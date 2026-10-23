@@ -4,9 +4,6 @@ import {
   Sparkles,
   MessageSquare,
   ChevronRight,
-  ChevronLeft,
-  ChevronDown,
-  Check,
   User,
   UserPlus,
   PlusCircle,
@@ -17,6 +14,7 @@ import {
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { getNarrators, getAllSessions, createSession } from '../services/api';
+import { PreservationWorkflowFooter } from '../components/PreservationWorkflowFooter';
 import type { Narrator, InterviewSession } from '../types';
 
 export const Screen7_SessionSetup: React.FC = () => {
@@ -34,7 +32,6 @@ export const Screen7_SessionSetup: React.FC = () => {
 
   const [narrators, setNarrators] = useState<Narrator[]>([]);
   const [selectedNarratorId, setSelectedNarratorId] = useState<string>(activeNarrator?.id || '');
-  const [currentStep, setCurrentStep] = useState<number>(1);
   const [sessionNumber, setSessionNumber] = useState<number>(1);
   const [title, setTitle] = useState<string>('');
   const [mode, setMode] = useState<'structured' | 'intelligent' | 'free_storytelling'>('structured');
@@ -258,164 +255,14 @@ export const Screen7_SessionSetup: React.FC = () => {
           </button>
         </div>
       ) : (
+        <>
         <form onSubmit={handleBeginInterview}>
-          {/* Interactive Step Progress Tracker */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: '28px',
-              background: '#FFFFFF',
-              padding: '14px 24px',
-              borderRadius: 'var(--radius-pill)',
-              border: '1px solid var(--border-subtle)',
-              boxShadow: 'var(--shadow-sm)',
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => {
-                setCurrentStep(1);
-                document.getElementById('step-1-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                padding: 0,
-              }}
-            >
-              <span
-                style={{
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '50%',
-                  background: currentStep >= 1 ? 'var(--slate-taupe-dark)' : 'var(--slate-bg-tint)',
-                  color: currentStep >= 1 ? '#FFFFFF' : 'var(--text-muted)',
-                  fontSize: '12px',
-                  fontWeight: 800,
-                  display: 'grid',
-                  placeItems: 'center',
-                  boxShadow: currentStep === 1 ? '0 2px 8px rgba(94, 86, 83, 0.3)' : 'none',
-                }}
-              >
-                1
-              </span>
-              <span
-                style={{
-                  fontSize: '13px',
-                  fontWeight: currentStep === 1 ? 800 : 600,
-                  color: currentStep === 1 ? 'var(--slate-taupe-dark)' : 'var(--text-muted)',
-                }}
-              >
-                {uiLanguage === 'ta' ? '1. நினைவாளர்' : '1. Narrator'}
-              </span>
-            </button>
-
-            <div style={{ flex: 1, height: '2px', background: currentStep >= 2 ? 'var(--slate-taupe-dark)' : 'var(--border-subtle)', margin: '0 16px', transition: 'background 0.3s' }} />
-
-            <button
-              type="button"
-              onClick={() => {
-                setCurrentStep(2);
-                document.getElementById('step-2-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                padding: 0,
-              }}
-            >
-              <span
-                style={{
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '50%',
-                  background: currentStep >= 2 ? 'var(--slate-taupe-dark)' : 'var(--slate-bg-tint)',
-                  color: currentStep >= 2 ? '#FFFFFF' : 'var(--text-muted)',
-                  fontSize: '12px',
-                  fontWeight: 800,
-                  display: 'grid',
-                  placeItems: 'center',
-                  boxShadow: currentStep === 2 ? '0 2px 8px rgba(94, 86, 83, 0.3)' : 'none',
-                }}
-              >
-                2
-              </span>
-              <span
-                style={{
-                  fontSize: '13px',
-                  fontWeight: currentStep === 2 ? 800 : 600,
-                  color: currentStep === 2 ? 'var(--slate-taupe-dark)' : 'var(--text-muted)',
-                }}
-              >
-                {uiLanguage === 'ta' ? '2. அமர்வு விவரங்கள்' : '2. Session Details'}
-              </span>
-            </button>
-
-            <div style={{ flex: 1, height: '2px', background: currentStep >= 3 ? 'var(--slate-taupe-dark)' : 'var(--border-subtle)', margin: '0 16px', transition: 'background 0.3s' }} />
-
-            <button
-              type="button"
-              onClick={() => {
-                setCurrentStep(3);
-                document.getElementById('step-3-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                padding: 0,
-              }}
-            >
-              <span
-                style={{
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '50%',
-                  background: currentStep >= 3 ? 'var(--slate-taupe-dark)' : 'var(--slate-bg-tint)',
-                  color: currentStep >= 3 ? '#FFFFFF' : 'var(--text-muted)',
-                  fontSize: '12px',
-                  fontWeight: 800,
-                  display: 'grid',
-                  placeItems: 'center',
-                  boxShadow: currentStep === 3 ? '0 2px 8px rgba(94, 86, 83, 0.3)' : 'none',
-                }}
-              >
-                3
-              </span>
-              <span
-                style={{
-                  fontSize: '13px',
-                  fontWeight: currentStep === 3 ? 800 : 600,
-                  color: currentStep === 3 ? 'var(--slate-taupe-dark)' : 'var(--text-muted)',
-                }}
-              >
-                {uiLanguage === 'ta' ? '3. நேர்காணல் முறை' : '3. Interview Mode'}
-              </span>
-            </button>
-          </div>
-
           {/* Narrator Picker Card */}
           <div
-            id="step-1-card"
             className="modern-card"
             style={{
               padding: '30px 34px',
               marginBottom: '24px',
-              border: currentStep === 1 ? '2px solid var(--slate-taupe-dark)' : '1px solid var(--border-card)',
-              transition: 'border 0.3s ease, box-shadow 0.3s ease',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
@@ -505,36 +352,14 @@ export const Screen7_SessionSetup: React.FC = () => {
                 </select>
               </div>
             </div>
-
-            {/* Step 1 Next Guidance Button */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--border-subtle)' }}>
-              <button
-                type="button"
-                className="btn-pill-primary"
-                onClick={() => {
-                  setCurrentStep(2);
-                  const el = document.getElementById('step-2-card');
-                  if (el) {
-                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  }
-                }}
-                style={{ padding: '12px 26px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
-              >
-                <span>{uiLanguage === 'ta' ? 'அடுத்த படி: அமர்வு விவரங்கள்' : 'Next Step: Session Details'}</span>
-                <ChevronDown size={16} />
-              </button>
-            </div>
           </div>
 
         {/* Session Details Card */}
         <div
-          id="step-2-card"
           className="modern-card"
           style={{
             padding: '30px 34px',
             marginBottom: '24px',
-            border: currentStep === 2 ? '2px solid var(--slate-taupe-dark)' : '1px solid var(--border-card)',
-            transition: 'border 0.3s ease, box-shadow 0.3s ease',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
@@ -660,52 +485,14 @@ export const Screen7_SessionSetup: React.FC = () => {
               }}
             />
           </div>
-
-          {/* Step 2 Guidance Buttons */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px', paddingTop: '18px', borderTop: '1px solid var(--border-subtle)' }}>
-            <button
-              type="button"
-              className="btn-pill-outline"
-              onClick={() => {
-                setCurrentStep(1);
-                const el = document.getElementById('step-1-card');
-                if (el) {
-                  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-              }}
-              style={{ padding: '10px 20px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-            >
-              <ChevronLeft size={15} />
-              <span>{uiLanguage === 'ta' ? 'முந்தைய படி: நினைவாளர்' : 'Previous: Narrator'}</span>
-            </button>
-
-            <button
-              type="button"
-              className="btn-pill-primary"
-              onClick={() => {
-                setCurrentStep(3);
-                const el = document.getElementById('step-3-card');
-                if (el) {
-                  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-              }}
-              style={{ padding: '12px 26px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
-            >
-              <span>{uiLanguage === 'ta' ? 'அடுத்த படி: நேர்காணல் முறை' : 'Next Step: Interview Mode'}</span>
-              <ChevronDown size={16} />
-            </button>
-          </div>
         </div>
 
         {/* 3 Interview Modes as specified in prompt */}
         <div
-          id="step-3-card"
           className="modern-card"
           style={{
             padding: '30px 34px',
             marginBottom: '32px',
-            border: currentStep === 3 ? '2px solid var(--slate-taupe-dark)' : '1px solid var(--border-card)',
-            transition: 'border 0.3s ease, box-shadow 0.3s ease',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
@@ -856,25 +643,6 @@ export const Screen7_SessionSetup: React.FC = () => {
               </div>
             </div>
           </div>
-
-          {/* Step 3 Previous Guidance Button */}
-          <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: '24px', paddingTop: '18px', borderTop: '1px solid var(--border-subtle)' }}>
-            <button
-              type="button"
-              className="btn-pill-outline"
-              onClick={() => {
-                setCurrentStep(2);
-                const el = document.getElementById('step-2-card');
-                if (el) {
-                  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-              }}
-              style={{ padding: '10px 20px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-            >
-              <ChevronLeft size={15} />
-              <span>{uiLanguage === 'ta' ? 'முந்தைய படி: அமர்வு விவரங்கள்' : 'Previous: Session Details'}</span>
-            </button>
-          </div>
         </div>
 
         {/* Begin Interview Button */}
@@ -935,6 +703,22 @@ export const Screen7_SessionSetup: React.FC = () => {
           </div>
         </div>
       </form>
+
+      {/* 6-Step Workflow Footer */}
+      <PreservationWorkflowFooter
+        currentStep="interviews"
+        onPrev={() => setCurrentScreen('narrators')}
+        onNext={() => setCurrentScreen('recordings')}
+        customPrevLabel={{
+          en: 'Previous: Narrators Directory',
+          ta: 'முந்தைய படி: நினைவாளர்கள்',
+        }}
+        customNextLabel={{
+          en: 'Next Step: Recordings & Transcripts',
+          ta: 'அடுத்த படி: ஒலிப்பதிவுகள் & உரைவடிவம்',
+        }}
+      />
+      </>
       )}
     </div>
   );

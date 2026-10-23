@@ -11,9 +11,11 @@ import {
   ArrowLeft,
   Volume2,
   Sparkles,
+  Headphones,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { uploadRecordingBlob } from '../services/api';
+import { PreservationWorkflowFooter } from '../components/PreservationWorkflowFooter';
 import type { SessionQuestion } from '../types';
 
 export const Screen9_RecordingStudio: React.FC = () => {
@@ -379,7 +381,7 @@ export const Screen9_RecordingStudio: React.FC = () => {
       setActiveQuestionIndex(activeQuestionIndex + 1);
       setCurrentScreen('interview_question');
     } else {
-      setCurrentScreen('dashboard');
+      setCurrentScreen('recordings');
     }
   };
 
@@ -746,22 +748,34 @@ export const Screen9_RecordingStudio: React.FC = () => {
         </div>
 
         {recordingState === 'saved' ? (
-          <button className="btn-pill-primary" onClick={handleNextQuestion}>
-            <span>{uiLanguage === 'ta' ? 'அடுத்த கேள்விக்குச் செல்க' : 'Proceed to Next Question'}</span>
-            <span
-              style={{
-                width: '24px',
-                height: '24px',
-                borderRadius: '50%',
-                background: 'rgba(255,255,255,0.2)',
-                display: 'grid',
-                placeItems: 'center',
-                fontSize: '11px',
-              }}
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <button
+              className="btn-pill-outline"
+              onClick={() => setCurrentScreen('recordings')}
+              title="Review recordings and AI transcripts"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             >
-              ↗
-            </span>
-          </button>
+              <Headphones size={15} />
+              <span>{uiLanguage === 'ta' ? 'ஒலிப்பதிவுகள் & உரைவடிவம்' : 'View Transcripts'}</span>
+            </button>
+
+            <button className="btn-pill-primary" onClick={handleNextQuestion}>
+              <span>{uiLanguage === 'ta' ? 'அடுத்த கேள்விக்குச் செல்க' : 'Proceed to Next Question'}</span>
+              <span
+                style={{
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '50%',
+                  background: 'rgba(255,255,255,0.2)',
+                  display: 'grid',
+                  placeItems: 'center',
+                  fontSize: '11px',
+                }}
+              >
+                ↗
+              </span>
+            </button>
+          </div>
         ) : (
           <button
             className="btn-pill-outline"
@@ -776,6 +790,17 @@ export const Screen9_RecordingStudio: React.FC = () => {
           </button>
         )}
       </div>
+
+      {/* 6-Step Workflow Footer */}
+      <PreservationWorkflowFooter
+        currentStep="interviews"
+        onPrev={() => setCurrentScreen('narrators')}
+        onNext={() => setCurrentScreen('recordings')}
+        customNextLabel={{
+          en: 'Next Step: Transcripts & Recordings',
+          ta: 'அடுத்த படி: ஒலிப்பதிவுகள் & உரைவடிவம்',
+        }}
+      />
     </div>
   );
 };

@@ -19,11 +19,13 @@ import { useAuth } from '../context/AuthContext';
 import { getAllRecordings, getNarrators } from '../services/api';
 import type { Recording, Narrator } from '../types';
 import { AudioPlayer } from '../components/AudioPlayer';
+import { PreservationWorkflowFooter } from '../components/PreservationWorkflowFooter';
 
 export const Screen14_RecordingLibrary: React.FC = () => {
   const { user } = useAuth();
   const {
     activeNarrator,
+    setCurrentScreen,
     setActiveRecordingForReview,
     setIsTranscriptModalOpen,
     uiLanguage,
@@ -458,6 +460,21 @@ export const Screen14_RecordingLibrary: React.FC = () => {
           ))}
         </div>
       )}
+
+      {/* 6-Step Workflow Footer */}
+      <PreservationWorkflowFooter
+        currentStep="recordings"
+        onPrev={() => setCurrentScreen('session_setup')}
+        onNext={() => setCurrentScreen('timeline')}
+        customPrevLabel={{
+          en: 'Previous: Interviews',
+          ta: 'முந்தைய படி: நேர்காணல்கள்',
+        }}
+        customNextLabel={{
+          en: 'Next Step: Memories & Timeline',
+          ta: 'அடுத்த படி: நினைவுகள் & காலவரிசை',
+        }}
+      />
     </div>
   );
 };

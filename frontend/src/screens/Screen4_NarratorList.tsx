@@ -14,12 +14,15 @@ import {
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { getNarrators } from '../services/api';
+import { PreservationWorkflowFooter } from '../components/PreservationWorkflowFooter';
 import type { Narrator } from '../types';
 
 export const Screen4_NarratorList: React.FC = () => {
   const { user } = useAuth();
   const {
+    currentScreen,
     setCurrentScreen,
+    activeNarrator,
     setActiveNarrator,
     setIsAddNarratorOpen,
     setEditingNarrator,
@@ -451,6 +454,28 @@ export const Screen4_NarratorList: React.FC = () => {
           })}
         </div>
       )}
+
+      {/* 6-Step Workflow Footer */}
+      <PreservationWorkflowFooter
+        currentStep="narrators"
+        onNext={() => {
+          if (activeNarrator) {
+            goToNewInterview(activeNarrator);
+          } else if (narrators.length > 0) {
+            goToNewInterview(narrators[0]);
+          } else {
+            setIsAddNarratorOpen(true);
+          }
+        }}
+        customNextLabel={{
+          en: activeNarrator
+            ? `Next Step: Start Interview with ${activeNarrator.full_name_english}`
+            : 'Next Step: Start Interview',
+          ta: activeNarrator
+            ? `அடுத்த படி: ${activeNarrator.full_name_tamil || activeNarrator.full_name_english} உடன் நேர்காணல்`
+            : 'அடுத்த படி: நேர்காணலைத் தொடங்கு',
+        }}
+      />
     </div>
   );
 };

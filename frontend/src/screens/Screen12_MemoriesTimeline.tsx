@@ -29,10 +29,19 @@ import {
 } from '../services/api';
 import type { Narrator, LifeEvent } from '../types';
 import { AudioPlayer } from '../components/AudioPlayer';
+import { PreservationWorkflowFooter } from '../components/PreservationWorkflowFooter';
 
 export const Screen12_MemoriesTimeline: React.FC = () => {
   const { user } = useAuth();
-  const { activeNarrator, setActiveNarrator, showToast, uiLanguage, setIsAddNarratorOpen, setEditingNarrator } = useApp();
+  const {
+    activeNarrator,
+    setActiveNarrator,
+    setCurrentScreen,
+    showToast,
+    uiLanguage,
+    setIsAddNarratorOpen,
+    setEditingNarrator,
+  } = useApp();
 
   const [narrators, setNarrators] = useState<Narrator[]>([]);
   const [selectedNarratorId, setSelectedNarratorId] = useState<string>(activeNarrator?.id || '');
@@ -706,6 +715,21 @@ export const Screen12_MemoriesTimeline: React.FC = () => {
       )}
         </>
       )}
+
+      {/* 6-Step Workflow Footer */}
+      <PreservationWorkflowFooter
+        currentStep="timeline"
+        onPrev={() => setCurrentScreen('recordings')}
+        onNext={() => setCurrentScreen('story_builder')}
+        customPrevLabel={{
+          en: 'Previous: Transcripts & Recordings',
+          ta: 'முந்தைய படி: ஒலிப்பதிவுகள் & உரைவடிவம்',
+        }}
+        customNextLabel={{
+          en: 'Next Step: LifeStory Builder',
+          ta: 'அடுத்த படி: வாழ்க்கை வரலாறு',
+        }}
+      />
 
       {/* Add New Memory Event Modal */}
       {showAddModal && (

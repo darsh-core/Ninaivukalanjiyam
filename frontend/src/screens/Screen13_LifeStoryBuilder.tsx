@@ -30,6 +30,7 @@ import {
   refineTranscriptProse,
 } from '../services/api';
 import type { Narrator, StoryDraft, StoryChapter } from '../types';
+import { PreservationWorkflowFooter } from '../components/PreservationWorkflowFooter';
 
 export const Screen13_LifeStoryBuilder: React.FC = () => {
   const { user } = useAuth();
@@ -841,6 +842,21 @@ export const Screen13_LifeStoryBuilder: React.FC = () => {
       )}
         </>
       )}
+
+      {/* 6-Step Workflow Footer */}
+      <PreservationWorkflowFooter
+        currentStep="story_builder"
+        onPrev={() => setCurrentScreen('timeline')}
+        onNext={() => setCurrentScreen('export')}
+        customPrevLabel={{
+          en: 'Previous: Memories & Timeline',
+          ta: 'முந்தைய படி: நினைவுகள் & காலவரிசை',
+        }}
+        customNextLabel={{
+          en: 'Next Step: Export & Archive',
+          ta: 'அடுத்த படி: ஏற்றுமதி & ஆவணம்',
+        }}
+      />
     </div>
   );
 };

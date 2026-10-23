@@ -31,6 +31,7 @@ import {
   getDownloadArchiveUrl,
 } from '../services/api';
 import type { Narrator, StoryDraft, StoryChapter, LifeEvent } from '../types';
+import { PreservationWorkflowFooter } from '../components/PreservationWorkflowFooter';
 
 export const Screen15_ExportShare: React.FC = () => {
   const { user } = useAuth();
@@ -1128,6 +1129,21 @@ export const Screen15_ExportShare: React.FC = () => {
             : 'Private stories should not be shared through public links by default. Obtain the narrator’s explicit permission before sharing recordings or personal stories.'}
         </div>
       </div>
+
+      {/* 6-Step Workflow Footer */}
+      <PreservationWorkflowFooter
+        currentStep="export"
+        onPrev={() => setCurrentScreen('story_builder')}
+        onNext={() => setCurrentScreen('narrators')}
+        customPrevLabel={{
+          en: 'Previous: LifeStory Builder',
+          ta: 'முந்தைய படி: வாழ்க்கை வரலாறு',
+        }}
+        customNextLabel={{
+          en: 'Complete Archive / View Narrators',
+          ta: 'ஆவணம் நிறைவு / நினைவாளர் பட்டியல்',
+        }}
+      />
 
       {/* Live Preview Modal */}
       {isPreviewOpen && previewData && (
