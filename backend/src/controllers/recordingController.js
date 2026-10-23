@@ -60,7 +60,12 @@ async function getAllRecordings(req, res) {
             }
         }
 
-        query += ` ORDER BY r.created_at DESC;`;
+        const sortDirection = req.query.sort?.toLowerCase() === 'asc' ? 'ASC' : 'DESC';
+        if (sortDirection === 'ASC') {
+            query += ` ORDER BY s.session_number ASC NULLS LAST, r.created_at ASC;`;
+        } else {
+            query += ` ORDER BY r.created_at DESC;`;
+        }
 
         const result = await pool.query(query, params);
 

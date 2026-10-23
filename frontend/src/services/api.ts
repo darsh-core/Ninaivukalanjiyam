@@ -217,12 +217,14 @@ export async function getAllRecordings(params?: {
   session_id?: string;
   status?: string;
   createdBy?: string;
+  sort?: 'asc' | 'desc';
 }): Promise<Recording[]> {
   const searchParams = new URLSearchParams();
   if (params?.narrator_id) searchParams.append('narrator_id', params.narrator_id);
   if (params?.session_id) searchParams.append('session_id', params.session_id);
   if (params?.status) searchParams.append('status', params.status);
   if (params?.createdBy) searchParams.append('createdBy', params.createdBy);
+  if (params?.sort) searchParams.append('sort', params.sort);
 
   const res = await fetch(`${API_BASE}/recordings?${searchParams.toString()}`, {
     headers: getAuthHeaders(),

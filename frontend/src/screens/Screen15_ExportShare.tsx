@@ -127,7 +127,7 @@ export const Screen15_ExportShare: React.FC = () => {
         const [drafts, timeline, recs] = await Promise.all([
           getStoryDrafts(targetId),
           getTimelineByNarrator(targetId),
-          getAllRecordings({ narrator_id: targetId }),
+          getAllRecordings({ narrator_id: targetId, sort: 'asc' }),
         ]);
         setRecordings(recs || []);
         let matchingDraft = null;
@@ -167,7 +167,15 @@ export const Screen15_ExportShare: React.FC = () => {
   }, [selectedNarratorId, user?.id, user?.email]);
 
   const validRecordings = useMemo(() => {
-    return recordings.filter((r) => r.storage_key);
+    return [...recordings]
+      .filter((r) => r.storage_key)
+      .sort((a, b) => {
+        // Strict chronological ordering: Question 1 to the last recording
+        const sA = a.session_number ?? 0;
+        const sB = b.session_number ?? 0;
+        if (sA !== sB) return sA - sB;
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      });
   }, [recordings]);
 
   const currentRec = validRecordings[podcastIndex] || null;
