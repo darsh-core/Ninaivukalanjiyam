@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getNarrators, getAllSessions } from '../services';
 import type { Narrator, InterviewSession } from '../types';
@@ -15,24 +15,33 @@ export const narratorName = (n: Narrator) => n.full_name_tamil || n.full_name_en
 export const narratorInitials = (n: Narrator) => Array.from(narratorName(n))[0] ?? '?';
 
 export function FamilyHomePage() {
-  const { lang } = useUi();
+  const { lang, tr } = useUi();
   const [narrators, setNarrators] = useState<Narrator[] | null>(null);
   const [sessions, setSessions] = useState<InterviewSession[]>([]);
   const [failed, setFailed] = useState(false);
 
+  const token = useRef(0);
+
   const load = useCallback(() => {
+    const mine = ++token.current;
     setFailed(false);
     setNarrators(null);
     Promise.all([getNarrators(), getAllSessions()])
       .then(([n, ss]) => {
+        if (mine !== token.current) return;
         setNarrators(n);
         setSessions(ss);
       })
-      .catch(() => setFailed(true));
+      .catch(() => {
+        if (mine === token.current) setFailed(true);
+      });
   }, []);
 
   useEffect(() => {
     load();
+    return () => {
+      token.current++;
+    };
   }, [load]);
 
   const resumable = narrators
@@ -45,17 +54,17 @@ export function FamilyHomePage() {
 
   return (
     <div className={s.page}>
-      <PageHeader title="எங்கள் குடும்பம் · Our family" subtitle={lang === 'en' ? 'Whose memories shall we keep today?' : undefined} />
+      <PageHeader title={tr('எங்கள் குடும்பம்', 'Our family')} subtitle={lang === 'en' ? 'Whose memories shall we keep today?' : undefined} />
 
       {failed && (
         <div role="alert" className={s.error}>
-          <p>குடும்பப் பட்டியலை ஏற்ற முடியவில்லை · Could not load your family.</p>
-          <Button variant="secondary" onClick={load}>மீண்டும் முயற்சி · Try again</Button>
+          <p>{tr('குடும்பப் பட்டியலை ஏற்ற முடியவில்லை.', 'Could not load your family.')}</p>
+          <Button variant="secondary" onClick={load}>{tr('மீண்டும் முயற்சி', 'Try again')}</Button>
         </div>
       )}
 
       {!failed && narrators === null && (
-        <div className={s.grid} aria-busy="true" aria-label="Loading">
+        <div className={s.grid} aria-busy="true" aria-label={tr('ஏற்றுகிறது', 'Loading')}>
           {[0, 1, 2].map((i) => (
             <div key={i} className={s.skeleton} aria-hidden="true" />
           ))}
@@ -66,13 +75,13 @@ export function FamilyHomePage() {
         <>
           {resumable && resumeNarrator && (
             <Link to={`/interview/${resumable.id}`} className={s.continue}>
-              ▶ நேர்காணலைத் தொடர் · Continue interview: {narratorName(resumeNarrator)} — {resumable.title}
+              ▶ {tr('நேர்காணலைத் தொடர்', 'Continue interview')}: {narratorName(resumeNarrator)} — {resumable.title}
             </Link>
           )}
           {narrators.length === 0 && (
             <EmptyState
-              title="இன்னும் யாரும் இல்லை · No one here yet"
-              body="முதல் பெரியவரைச் சேருங்கள் · Add your first family elder to begin."
+              title={tr('இன்னும் யாரும் இல்லை', 'No one here yet')}
+              body={tr('முதல் பெரியவரைச் சேருங்கள்.', 'Add your first family elder to begin.')}
             />
           )}
           <ul className={s.grid}>
@@ -85,8 +94,10 @@ export function FamilyHomePage() {
                     <h2 className={s.name}>{narratorName(n)}</h2>
                     {n.place_of_birth && <p className={s.meta}>{n.place_of_birth}</p>}
                     <p className={s.meta}>
-                      {n.session_count ?? 0} நேர்காணல்கள் · {n.recording_count ?? 0} பதிவுகள்
-                      {lang === 'en' && ` (${n.session_count ?? 0} interviews, ${n.recording_count ?? 0} recordings)`}
+                      {tr(
+                        `${n.session_count ?? 0} நேர்காணல்கள் · ${n.recording_count ?? 0} பதிவுகள்`,
+                        `${n.session_count ?? 0} interviews · ${n.recording_count ?? 0} recordings`,
+                      )}
                     </p>
                     {n.photo_frame_note && <HandNote>{n.photo_frame_note}</HandNote>}
                   </div>
@@ -96,7 +107,7 @@ export function FamilyHomePage() {
             ))}
             <li>
               <Link to="/elders/new" className={s.link}>
-                <Card className={`${s.narrator} ${s.add}`}>+ குடும்பப் பெரியவரைச் சேர் · Add a family elder</Card>
+                <Card className={`${s.narrator} ${s.add}`}>+ {tr('குடும்பப் பெரியவரைச் சேர்', 'Add a family elder')}</Card>
               </Link>
             </li>
           </ul>

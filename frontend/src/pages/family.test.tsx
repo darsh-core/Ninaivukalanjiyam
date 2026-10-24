@@ -112,8 +112,40 @@ describe('Elder form', () => {
     expect(await screen.findByText(/2 MB/)).toBeInTheDocument();
   });
 
+  it('clears the photo error when a valid image is chosen', async () => {
+    renderAt('/elders/new');
+    const input = screen.getByLabelText(/புகைப்படம்/) as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [new File(['x'], 'a.txt', { type: 'text/plain' })] } });
+    expect(await screen.findByText(/படக் கோப்பை/)).toBeInTheDocument();
+    fireEvent.change(input, { target: { files: [new File(['x'], 'a.png', { type: 'image/png' })] } });
+    await waitFor(() => expect(screen.queryByText(/படக் கோப்பை/)).not.toBeInTheDocument());
+  });
+
+  it('edit-mode load failure offers a retry', async () => {
+    window.history.replaceState({}, '', '/?mockError=getNarratorById');
+    const user = userEvent.setup();
+    renderAt('/elders/n-rajeshwari/edit');
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
+    window.history.replaceState({}, '', '/');
+    await user.click(screen.getByRole('button', { name: /மீண்டும் முயற்சி/ }));
+    await waitFor(() => expect(screen.getByLabelText(/தமிழ் பெயர்/)).toHaveValue('ராஜேஸ்வரி பாட்டி'));
+  });
+
   it('prefills when editing', async () => {
     renderAt('/elders/n-rajeshwari/edit');
     await waitFor(() => expect(screen.getByLabelText(/தமிழ் பெயர்/)).toHaveValue('ராஜேஸ்வரி பாட்டி'));
+  });
+});
+
+describe('Language toggle', () => {
+  it('switches home and form to English', async () => {
+    localStorage.setItem('nk_ui_lang', 'en');
+    const { unmount } = renderAt('/');
+    expect(await screen.findByRole('heading', { name: 'Our family' })).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: /Continue interview/ })).toBeInTheDocument();
+    unmount();
+    renderAt('/elders/new');
+    expect(screen.getByLabelText('Tamil name')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument();
   });
 });
