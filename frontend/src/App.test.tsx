@@ -41,7 +41,7 @@ describe('App routing', () => {
     await user.type(await screen.findByLabelText(/மின்னஞ்சல்|Email/), 'a@b.com');
     await user.type(screen.getByLabelText(/கடவுச்சொல்|Password/), 'whatever');
     await user.click(screen.getByRole('button', { name: /உள்நுழை|Sign in/ }));
-    expect(await screen.findByText('Family home')).toBeInTheDocument();
+    expect(await screen.findByText(/எங்கள் குடும்பம்/)).toBeInTheDocument();
     expect(screen.getByText('மாதிரி தரவு')).toBeInTheDocument();
   });
 
@@ -78,6 +78,6 @@ describe('App routing', () => {
     expect(await screen.findByText('Elder: interviews')).toBeInTheDocument();
     unmount();
     renderAt('/nope');
-    expect(await screen.findByText('Family home')).toBeInTheDocument();
+    expect(await screen.findByText(/எங்கள் குடும்பம்/)).toBeInTheDocument();
   });
 });
