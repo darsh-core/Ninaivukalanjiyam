@@ -3,6 +3,14 @@ export interface User {
   fullName: string;
   email: string;
   role: 'admin' | 'assistant';
+  // TODO(api): users have no profile photo on the backend yet
+  photo_url?: string | null;
+}
+
+export interface ProfileInput {
+  fullName: string;
+  email: string;
+  photo_url?: string | null;
 }
 
 export interface Narrator {

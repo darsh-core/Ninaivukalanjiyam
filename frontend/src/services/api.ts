@@ -15,6 +15,7 @@ import type {
   TopicProgress,
   ArchiveKind,
   ArchiveExport,
+  ProfileInput,
 } from '../types';
 import { NotAvailableError } from './errors';
 
@@ -499,6 +500,11 @@ export async function generateStoryDraftFromSources(
   _sources: { eventIds: string[]; recordingIds: string[] }
 ): Promise<StoryDraft> {
   throw new NotAvailableError('generateStoryDraftFromSources');
+}
+
+// TODO(api): no backend endpoint yet
+export async function updateProfile(_input: ProfileInput): Promise<User> {
+  throw new NotAvailableError('updateProfile');
 }
 
 export async function createArchiveExport(_narratorId: string, _kind: ArchiveKind): Promise<ArchiveExport> {

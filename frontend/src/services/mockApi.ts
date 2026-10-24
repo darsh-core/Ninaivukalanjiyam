@@ -4,6 +4,7 @@ import type {
   User, Narrator, NarratorDetail, NarratorInput, InterviewSession, BankQuestion, SessionQuestion,
   Recording, Transcript, LifeEvent, StoryDraft, DashboardOverview,
   ConsentRecord, TopicProgress, ArchiveKind, ArchiveExport,
+  ProfileInput,
 } from '../types';
 import { DEMO_USER } from './mockData';
 import {
@@ -13,9 +14,10 @@ import {
 
 const MOCK_AUDIO = '/mock-audio/sample-1.wav';
 let demoEmail = DEMO_USER.email;
+let demoProfile: Partial<User> = {};
 
 function demoUser(): User {
-  return { ...DEMO_USER, email: demoEmail };
+  return { ...DEMO_USER, email: demoEmail, ...demoProfile };
 }
 
 function findNarrator(id: string) {
@@ -481,6 +483,14 @@ export async function generateStoryDraftFromSources(narratorId: string,
   await mockGate('generateStoryDraftFromSources');
   const titles = db().events.filter((e) => sources.eventIds.includes(e.id)).map((e) => e.title);
   return buildDraft(narratorId, languageCode, sources.recordingIds, titles);
+}
+
+export async function updateProfile(input: ProfileInput): Promise<User> {
+  await mockGate('updateProfile');
+  if (!input.fullName.trim() || !input.email.trim()) throw new Error('Name and email are required');
+  demoEmail = input.email.trim();
+  demoProfile = { fullName: input.fullName.trim(), photo_url: input.photo_url ?? null };
+  return demoUser();
 }
 
 export async function createArchiveExport(narratorId: string, kind: ArchiveKind): Promise<ArchiveExport> {

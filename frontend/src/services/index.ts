@@ -22,4 +22,5 @@ export const {
   getStoryDrafts, saveStoryDraft, updateStoryDraft,
   getExportPreview, getAudioUrl, getDownloadArchiveUrl,
   getConsent, recordConsent, getTopicProgress, generateStoryDraftFromSources, createArchiveExport,
+  updateProfile,
 } = impl;

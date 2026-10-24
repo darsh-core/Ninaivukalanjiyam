@@ -14,3 +14,7 @@ The redesigned frontend runs as a prototype on fake data (`npm run dev:mock`). E
 | `SessionQuestion.transcript_job_status` | Interview question list | 2 transcription jobs | Optional; the interview page shows no job state for the question. |
 | `Narrator.photo_frame_note` | Family home card ("next up" handwritten note) | 4 session progression/modules | Optional; only the family home card uses it, and it is hidden when absent. |
 | Recording question display order (`ExportSection.tsx`, podcast playlist) | Export section, podcast player | 4 session progression/modules | Tracks are sorted by `session_number`, then `created_at` ascending, as a stand-in for question order. |
+| `updateProfile(input)` (stub) | Profile page | — (not in the core plan; needs a user-profile endpoint) | Real mode saves the name, email and photo in this browser only (stored with the signed-in user) and says so on the page. |
+| `User.photo_url` | Header avatar, Profile page | — (needs a user-profile endpoint) | Optional; the avatar shows the first letter of the name when absent. |
+| Elder order (`utils/elderOrder.ts`) | Manage family, Family home | — (needs an ordering field on narrators) | Order is kept in this browser's localStorage; elders not in the saved order appear after the ordered ones. |
+| Restore an archived elder | Manage family | — (needs an un-archive endpoint) | Archiving hides the elder; the page notes that bringing them back is coming soon. |

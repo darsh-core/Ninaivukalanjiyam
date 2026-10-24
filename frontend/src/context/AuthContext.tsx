@@ -9,6 +9,8 @@ interface AuthContextType {
   login: (email: string, password?: string) => Promise<void>;
   register: (fullName: string, email: string, password?: string) => Promise<void>;
   logout: () => void;
+  /** Replace the signed-in user's details (after a profile save). */
+  updateUser: (user: User) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -54,6 +56,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('nk_token', res.token);
   };
 
+  const updateUser = (next: User) => {
+    setUser(next);
+    localStorage.setItem('nk_user', JSON.stringify(next));
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem('nk_user');
@@ -71,6 +78,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         login,
         register,
         logout,
+        updateUser,
       }}
     >
       {children}

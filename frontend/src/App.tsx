@@ -3,6 +3,10 @@ import { AuthProvider } from './context/AuthContext';
 import { UiProvider } from './context/UiContext';
 import { Toast } from './ui/Toast/Toast';
 import { RequireAuth } from './routes/RequireAuth';
+import { ProfilePage } from './pages/account/ProfilePage';
+import { ManageFamilyPage } from './pages/account/ManageFamilyPage';
+import { HelpPage } from './pages/account/HelpPage';
+import { PrivacyPage } from './pages/account/PrivacyPage';
 import { AppLayout } from './layouts/AppLayout';
 import { ElderLayout } from './layouts/ElderLayout';
 import { WelcomePage } from './pages/WelcomePage';
@@ -23,6 +27,10 @@ export function AppRoutes() {
       <Route element={<RequireAuth />}>
         <Route element={<AppLayout />}>
           <Route path="/" element={<FamilyHomePage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/family" element={<ManageFamilyPage />} />
+          <Route path="/help" element={<HelpPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/elders/new" element={<ElderFormPage />} />
           <Route path="/elders/:id/edit" element={<ElderFormPage />} />
           <Route path="/elders/:id" element={<Navigate to="interviews" replace />} />

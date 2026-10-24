@@ -5,6 +5,7 @@ import type { Narrator } from '../types';
 import { useUi } from '../context/UiContext';
 import { useAuth } from '../context/AuthContext';
 import { TodayCard } from './TodayCard';
+import { applyElderOrder } from '../utils/elderOrder';
 import { Button } from '../ui/Button/Button';
 import { Card } from '../ui/Card/Card';
 import { EmptyState } from '../ui/EmptyState/EmptyState';
@@ -29,7 +30,7 @@ export function FamilyHomePage() {
     setNarrators(null);
     getNarrators()
       .then((n) => {
-        if (mine === token.current) setNarrators(n);
+        if (mine === token.current) setNarrators(applyElderOrder(n));
       })
       .catch(() => {
         if (mine === token.current) setFailed(true);

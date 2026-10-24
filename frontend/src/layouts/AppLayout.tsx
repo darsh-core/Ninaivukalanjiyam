@@ -6,11 +6,16 @@ import { IS_MOCK } from '../services';
 import { LangToggle } from './LangToggle';
 import s from './AppLayout.module.css';
 
+function initialOf(name: string | undefined) {
+  return Array.from(name?.trim() ?? '')[0] ?? '?';
+}
+
 export function AppLayout() {
-  const { logout } = useAuth();
-  const { tr } = useUi();
+  const { user, logout } = useAuth();
+  const { lang, setLang, tr } = useUi();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const close = () => setOpen(false);
 
   useEffect(() => {
     if (!open) return;
@@ -44,16 +49,48 @@ export function AppLayout() {
               aria-label={tr('பட்டி', 'Menu')}
               onClick={() => setOpen(!open)}
             >
-              <span aria-hidden="true">☰</span>
+              <span className={s.avatar} aria-hidden="true">
+                {user?.photo_url ? <img src={user.photo_url} alt="" /> : initialOf(user?.fullName)}
+              </span>
+              <span className={s.burger} aria-hidden="true">☰</span>
             </button>
             {open && (
               <div className={s.pop} role="menu">
+                <div className={s.who}>
+                  <span className={s.whoName}>{user?.fullName}</span>
+                  <span className={s.whoEmail}>{user?.email}</span>
+                </div>
+                <div className={s.sep} role="separator" />
+                <Link to="/profile" role="menuitem" className={s.item} onClick={close}>
+                  <span aria-hidden="true">👤</span> {tr('சுயவிவரம்', 'Profile')}
+                </Link>
+                <Link to="/family" role="menuitem" className={s.item} onClick={close}>
+                  <span aria-hidden="true">👪</span> {tr('குடும்பத்தை நிர்வகி', 'Manage family')}
+                </Link>
                 <button
                   type="button"
                   role="menuitem"
                   className={s.item}
                   onClick={() => {
-                    setOpen(false);
+                    setLang(lang === 'ta' ? 'en' : 'ta');
+                    close();
+                  }}
+                >
+                  <span aria-hidden="true">🌐</span> {lang === 'ta' ? 'English' : 'தமிழ்'}
+                </button>
+                <Link to="/help" role="menuitem" className={s.item} onClick={close}>
+                  <span aria-hidden="true">❓</span> {tr('உதவி & வழிகாட்டி', 'Help & guide')}
+                </Link>
+                <Link to="/privacy" role="menuitem" className={s.item} onClick={close}>
+                  <span aria-hidden="true">🔒</span> {tr('தனியுரிமை & ஒப்புதல்', 'Privacy & consent')}
+                </Link>
+                <div className={s.sep} role="separator" />
+                <button
+                  type="button"
+                  role="menuitem"
+                  className={`${s.item} ${s.signOut}`}
+                  onClick={() => {
+                    close();
                     logout();
                   }}
                 >
