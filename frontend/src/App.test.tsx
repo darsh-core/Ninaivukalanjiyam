@@ -74,7 +74,7 @@ describe('App routing', () => {
     await user.type(await screen.findByLabelText(/மின்னஞ்சல்/), 'a@b.com');
     await user.type(screen.getByLabelText(/கடவுச்சொல்/), 'pw');
     await user.click(screen.getByRole('button', { name: /உள்நுழை/ }));
-    expect(await screen.findByText('Recordings section')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 2, name: 'சிறுவயது நினைவுகள்' })).toBeInTheDocument();
   });
 
   it('redirects /elders/:id to interviews and unknown paths to /', async () => {
