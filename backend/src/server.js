@@ -20,7 +20,8 @@ const seedRecordingsDir = path.join(__dirname, '../../database/seed_recordings')
 // Configure CORS and Helmet
 app.use(helmet({
     crossOriginResourcePolicy: false, // Allow loading audio across origins
-    contentSecurityPolicy: false       // Allow React SPA and external assets to render cleanly
+    contentSecurityPolicy: false,      // Allow React SPA and external assets to render cleanly
+    hsts: false                        // Do not force HSTS on raw IP address (prevents browser infinite loading)
 }));
 
 app.use(cors({
