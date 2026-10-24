@@ -136,6 +136,8 @@ export interface Recording {
   transcript_text_english?: string | null;
   transcript_source?: string;
   transcript_reviewed_at?: string | null;
+  // TODO(api): transcription job state
+  transcript_job_status?: TranscriptJobStatus;
 }
 
 export interface Transcript {
