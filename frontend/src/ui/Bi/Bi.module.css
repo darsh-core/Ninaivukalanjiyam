@@ -1,0 +1,5 @@
+.bi { display: flex; flex-direction: column; gap: 4px; }
+.question .ta { font-family: var(--font-serif); font-size: var(--fs-question); line-height: 1.5; font-weight: 500; }
+.heading .ta { font-family: var(--font-serif); font-size: var(--fs-heading); font-weight: 700; }
+.body .ta { font-size: var(--fs-body); }
+.en { font-size: var(--fs-caption); color: var(--color-muted); line-height: 1.5; }

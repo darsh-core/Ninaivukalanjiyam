@@ -1,0 +1,28 @@
+@import './tokens.css';
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body { margin: 0; padding: 0; max-width: 100%; overflow-x: hidden; }
+
+body {
+  background: var(--color-parchment);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+}
+
+p, h1, h2, h3, h4, li, span, div, label, a, button, td, th {
+  overflow-wrap: anywhere;
+}
+
+h1, h2, h3 { font-family: var(--font-serif); margin: 0; }
+
+button, input, textarea, select { font-family: inherit; font-size: inherit; }
+button { cursor: pointer; }
+
+:focus-visible { outline: 3px solid var(--color-turmeric); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

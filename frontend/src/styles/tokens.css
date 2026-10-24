@@ -1,0 +1,45 @@
+:root {
+  --color-parchment: #F6EFE4;
+  --color-paper: #FFFBF5;
+  --color-border: #E2D4C1;
+  --color-border-soft: #E8DCCB;
+  --color-terracotta: #B4532A;
+  --color-terracotta-dark: #96431F;
+  --color-turmeric: #D9A441;
+  --color-ink: #3B2A20;
+  --color-muted: #8A7565;
+  --color-saved: #3F6B34;
+  --color-saved-bg: #E5EFDF;
+  --color-review: #7A5410;
+  --color-review-bg: #F7E6BF;
+  --color-failed: #9A2F14;
+  --color-failed-bg: #F8DCD3;
+  --color-neutral: #5E5048;
+  --color-neutral-bg: #EFE6D8;
+
+  --font-serif: 'Noto Serif Tamil', serif;
+  --font-sans: 'Mukta Malar', system-ui, sans-serif;
+  --font-hand: 'Kavivanar', cursive;
+
+  --fs-display: 32px;
+  --fs-question: 26px;
+  --fs-heading: 20px;
+  --fs-body: 17px;
+  --fs-caption: 14px;
+  --fs-button: 16px;
+  --lh-body: 1.65;
+
+  --radius-card: 16px;
+  --radius-pill: 999px;
+  --shadow-card: 0 2px 10px rgba(59, 42, 32, .08);
+  --tap: 48px;
+}
+
+@media (max-width: 640px) {
+  :root {
+    --fs-display: 26px;
+    --fs-question: 22px;
+    --fs-heading: 18px;
+    --fs-button: 17px;
+  }
+}

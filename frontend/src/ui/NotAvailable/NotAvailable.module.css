@@ -1,0 +1,7 @@
+.panel {
+  display: flex; flex-direction: column; gap: 4px; padding: 20px; text-align: center;
+  background: var(--color-neutral-bg); border: 1px dashed var(--color-border);
+  border-radius: var(--radius-card); color: var(--color-neutral);
+}
+.title { font-family: var(--font-serif); font-size: var(--fs-heading); }
+.feature { font-size: var(--fs-caption); color: var(--color-muted); }

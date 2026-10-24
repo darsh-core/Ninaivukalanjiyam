@@ -1,0 +1,8 @@
+.field { display: flex; flex-direction: column; gap: 6px; }
+.label { font-size: var(--fs-caption); font-weight: 600; color: var(--color-muted); }
+.control { display: block; }
+.control :is(input, textarea, select) {
+  width: 100%; min-height: var(--tap); padding: 10px 14px; border-radius: 12px;
+  border: 1.5px solid var(--color-border); background: var(--color-paper); color: var(--color-ink);
+}
+.control :is(input, textarea, select):focus { outline: none; border-color: var(--color-terracotta); }

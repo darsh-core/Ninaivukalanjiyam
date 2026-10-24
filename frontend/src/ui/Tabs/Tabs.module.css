@@ -1,0 +1,7 @@
+.tabs { display: flex; gap: 8px; overflow-x: auto; max-width: 100%; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
+.tab {
+  flex-shrink: 0; display: inline-flex; align-items: center; min-height: var(--tap); padding: 0 18px;
+  border-radius: var(--radius-pill); color: var(--color-ink); text-decoration: none; font-weight: 600;
+  border: 1.5px solid var(--color-border);
+}
+.active { background: var(--color-terracotta); color: var(--color-paper); border-color: var(--color-terracotta); }

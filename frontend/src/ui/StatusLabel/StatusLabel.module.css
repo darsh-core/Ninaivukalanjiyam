@@ -1,0 +1,8 @@
+.label {
+  display: inline-block; padding: 2px 12px; border-radius: var(--radius-pill);
+  font-size: var(--fs-caption); font-weight: 600; line-height: 1.5;
+}
+.ok { color: var(--color-saved); background: var(--color-saved-bg); }
+.warn { color: var(--color-review); background: var(--color-review-bg); }
+.bad { color: var(--color-failed); background: var(--color-failed-bg); }
+.neutral { color: var(--color-neutral); background: var(--color-neutral-bg); }
