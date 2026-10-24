@@ -1,0 +1,15 @@
+.player { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.now { display: flex; flex-direction: column; gap: 6px; min-width: 0; overflow-wrap: anywhere; }
+.counter { margin: 0; color: var(--color-muted); font-size: var(--fs-caption); font-weight: 600; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.problem { margin: 0; padding: 10px 14px; border-radius: 12px; background: var(--color-failed-bg); color: var(--color-failed); }
+.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.track {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 48px; box-sizing: border-box; padding: 10px 14px;
+  text-align: left; font: inherit; color: var(--color-ink); background: var(--color-paper);
+  border: 1.5px solid var(--color-border); border-radius: 14px; cursor: pointer;
+}
+.track[aria-current='true'] { border-color: var(--color-terracotta); background: var(--color-parchment); font-weight: 600; }
+.num { flex: none; min-width: 24px; color: var(--color-muted); font-size: var(--fs-caption); }
+.q { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.dur { flex: none; color: var(--color-muted); font-size: var(--fs-caption); font-variant-numeric: tabular-nums; }
