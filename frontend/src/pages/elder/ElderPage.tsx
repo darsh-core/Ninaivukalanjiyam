@@ -130,7 +130,7 @@ function ElderHub({ id, section }: { id: string; section: Section }) {
       <Tabs items={tabs} />
 
       <div>
-        {section === 'interviews' && <InterviewsSection narratorId={id} />}
+        {section === 'interviews' && <InterviewsSection narratorId={id} sessions={sessions} />}
         {section === 'recordings' && <RecordingsSection narratorId={id} />}
         {section === 'timeline' && <TimelineSection narratorId={id} />}
         {section === 'story' && <StorySection narratorId={id} />}

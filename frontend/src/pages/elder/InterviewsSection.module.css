@@ -11,6 +11,3 @@
 }
 .cont, .start { background: var(--color-terracotta); color: var(--color-paper); }
 .open { border: 1.5px solid var(--color-border); color: var(--color-ink); }
-.loading { min-height: 120px; border-radius: var(--radius-card); background: var(--color-neutral-bg); }
-.error { background: var(--color-failed-bg); color: var(--color-failed); border-radius: var(--radius-card); padding: 16px; display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
-.error p { margin: 0; }

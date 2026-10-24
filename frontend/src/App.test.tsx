@@ -11,6 +11,7 @@ vi.mock('./services', async () => ({
 import { AppRoutes } from './App';
 import { AuthProvider } from './context/AuthContext';
 import { UiProvider } from './context/UiContext';
+import { resetMockStore, setMockDelay } from './services/mockStore';
 
 const renderAt = (path: string) =>
   render(
@@ -26,7 +27,11 @@ const renderAt = (path: string) =>
 const signIn = () =>
   localStorage.setItem('nk_user', JSON.stringify({ id: 'u1', fullName: 'Test', email: 't@x.com' }));
 
-beforeEach(() => localStorage.clear());
+beforeEach(() => {
+  resetMockStore();
+  setMockDelay(0);
+  localStorage.clear();
+});
 
 describe('App routing', () => {
   it('shows Welcome for an unauthenticated visit to /', async () => {
@@ -69,13 +74,13 @@ describe('App routing', () => {
     await user.type(await screen.findByLabelText(/மின்னஞ்சல்/), 'a@b.com');
     await user.type(screen.getByLabelText(/கடவுச்சொல்/), 'pw');
     await user.click(screen.getByRole('button', { name: /உள்நுழை/ }));
-    expect(await screen.findByText('Recordings section', {}, { timeout: 4000 })).toBeInTheDocument();
+    expect(await screen.findByText('Recordings section')).toBeInTheDocument();
   });
 
   it('redirects /elders/:id to interviews and unknown paths to /', async () => {
     signIn();
     const { unmount } = renderAt('/elders/n-rajeshwari');
-    expect(await screen.findByRole('heading', { level: 1, name: 'ராஜேஸ்வரி பாட்டி' }, { timeout: 4000 })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: 'ராஜேஸ்வரி பாட்டி' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'நேர்காணல்கள்' })).toHaveAttribute('aria-current', 'page');
     unmount();
     renderAt('/nope');

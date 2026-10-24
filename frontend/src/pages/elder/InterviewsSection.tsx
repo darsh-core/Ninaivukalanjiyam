@@ -1,9 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getAllSessions } from '../../services';
 import type { InterviewSession } from '../../types';
 import { useUi } from '../../context/UiContext';
-import { Button } from '../../ui/Button/Button';
 import { Card } from '../../ui/Card/Card';
 import { EmptyState } from '../../ui/EmptyState/EmptyState';
 import { StatusLabel, type Status } from '../../ui/StatusLabel/StatusLabel';
@@ -11,41 +8,8 @@ import s from './InterviewsSection.module.css';
 
 const statusOf = (x: InterviewSession): Status => (x.status === 'abandoned' ? 'paused' : x.status);
 
-export function InterviewsSection({ narratorId }: { narratorId: string }) {
+export function InterviewsSection({ narratorId, sessions }: { narratorId: string; sessions: InterviewSession[] }) {
   const { lang, tr } = useUi();
-  const [sessions, setSessions] = useState<InterviewSession[] | null>(null);
-  const [failed, setFailed] = useState(false);
-  const token = useRef(0);
-
-  const load = useCallback(() => {
-    const mine = ++token.current;
-    setFailed(false);
-    setSessions(null);
-    getAllSessions(narratorId)
-      .then((ss) => {
-        if (mine === token.current) setSessions(ss);
-      })
-      .catch(() => {
-        if (mine === token.current) setFailed(true);
-      });
-  }, [narratorId]);
-
-  useEffect(() => {
-    load();
-    return () => {
-      token.current++;
-    };
-  }, [load]);
-
-  if (failed) {
-    return (
-      <div role="alert" className={s.error}>
-        <p>{tr('நேர்காணல்களை ஏற்ற முடியவில்லை.', 'Could not load interviews.')}</p>
-        <Button variant="secondary" onClick={load}>{tr('மீண்டும் முயற்சி', 'Try again')}</Button>
-      </div>
-    );
-  }
-  if (!sessions) return <div className={s.loading} aria-busy="true" aria-label={tr('ஏற்றுகிறது', 'Loading')} />;
 
   if (sessions.length === 0) {
     return (
