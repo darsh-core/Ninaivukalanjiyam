@@ -243,7 +243,23 @@ export async function uploadRecordingBlob(
   transcriptText?: string
 ): Promise<Recording> {
   const formData = new FormData();
-  formData.append('audio_file', audioBlob, `recording_${Date.now()}.webm`);
+
+  let ext = 'webm';
+  const type = (audioBlob.type || '').toLowerCase();
+  if (type.includes('mp4') || type.includes('m4a')) ext = 'm4a';
+  else if (type.includes('wav')) ext = 'wav';
+  else if (type.includes('mp3') || type.includes('mpeg')) ext = 'mp3';
+  else if (type.includes('ogg')) ext = 'ogg';
+  else if (type.includes('aac')) ext = 'aac';
+  else if (type.includes('3gp') || type.includes('3gpp')) ext = '3gp';
+  else if ((audioBlob as any).name) {
+    const origExt = (audioBlob as any).name.split('.').pop()?.toLowerCase();
+    if (origExt) ext = origExt;
+  }
+
+  const filename = (audioBlob as any).name || `recording_${Date.now()}.${ext}`;
+  formData.append('audio_file', audioBlob, filename);
+  formData.append('mime_type', audioBlob.type || `audio/${ext}`);
   formData.append('session_question_id', sessionQuestionId);
   formData.append('duration_seconds', durationSeconds.toString());
   if (transcriptText) {

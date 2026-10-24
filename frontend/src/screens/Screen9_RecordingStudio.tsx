@@ -12,6 +12,8 @@ import {
   Volume2,
   Sparkles,
   Headphones,
+  Smartphone,
+  Upload,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { uploadRecordingBlob } from '../services/api';
@@ -57,6 +59,43 @@ export const Screen9_RecordingStudio: React.FC = () => {
   const audioUrlRef = useRef<string | null>(null);
   const webAudioSourceRef = useRef<AudioBufferSourceNode | null>(null);
   const webAudioCtxRef = useRef<AudioContext | null>(null);
+  const mobileAudioInputRef = useRef<HTMLInputElement | null>(null);
+  const fileUploadInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Handle native mobile audio capture or audio file upload
+  const handleAudioFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadError('');
+    setAudioBlob(file);
+
+    if (audioUrlRef.current) {
+      URL.revokeObjectURL(audioUrlRef.current);
+    }
+    const url = URL.createObjectURL(file);
+    audioUrlRef.current = url;
+    setAudioUrl(url);
+
+    // Read audio duration
+    const tempAudio = new Audio(url);
+    tempAudio.onloadedmetadata = () => {
+      const dur = Math.round(tempAudio.duration);
+      setDuration(dur > 0 ? dur : 10);
+      setPlaybackDuration(dur > 0 ? dur : 10);
+    };
+    tempAudio.onerror = () => {
+      setDuration(10);
+      setPlaybackDuration(10);
+    };
+
+    setRecordingState('stopped');
+    showToast(
+      uiLanguage === 'ta'
+        ? 'ஆடியோ பதிவு வெற்றிகரமாக ஏற்கப்பட்டது! சரிபார்த்து சேமிக்கவும்.'
+        : 'Audio loaded successfully! Review and save.'
+    );
+  };
 
   // Timer logic
   useEffect(() => {
@@ -102,17 +141,29 @@ export const Screen9_RecordingStudio: React.FC = () => {
     setIsPlaying(false);
     setPlaybackCurrentTime(0);
 
-    // Browsers only expose the microphone on HTTPS (or localhost); on plain HTTP
-    // navigator.mediaDevices is undefined and no permission prompt is ever shown.
-    if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+    const isSecure = typeof window !== 'undefined' && (
+      window.isSecureContext ||
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1'
+    );
+    const hasMedia = typeof navigator !== 'undefined' && !!navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function';
+
+    // Browsers only expose live microphone on HTTPS (or localhost); on plain HTTP navigator.mediaDevices is undefined
+    if (!isSecure || !hasMedia) {
+      if (mobileAudioInputRef.current) {
+        // Automatically open phone native voice recorder
+        mobileAudioInputRef.current.click();
+        return;
+      }
+
       setUploadError(
-        !window.isSecureContext
+        !isSecure
           ? uiLanguage === 'ta'
-            ? 'ஒலிப்பதிவுக்கு இந்தத் தளம் பாதுகாப்பான (https://) முகவரியில் திறக்கப்பட வேண்டும்.'
-            : 'Recording needs a secure connection. Open this site with an https:// address.'
+            ? 'மொபைல் பிரவுசர்கள் HTTP-யில் நேரடி மைக்ரோஃபோனைத் தடுக்கும். கீழே உள்ள "போன் ரெக்கார்டர்" பொத்தானைப் பயன்படுத்தவும் அல்லது HTTPS முகவரியில் திறக்கவும்.'
+            : 'Mobile browsers block live mic on HTTP. Tap "Record via Phone Mic" below or open this site using HTTPS.'
           : uiLanguage === 'ta'
-          ? 'இந்த உலாவி ஒலிப்பதிவை ஆதரிக்கவில்லை.'
-          : 'This browser does not support audio recording.'
+          ? 'இந்த உலாவி நேரடி ஒலிப்பதிவை ஆதரிக்கவில்லை. "போன் ரெக்கார்டர்" பொத்தானைப் பயன்படுத்தவும்.'
+          : 'This browser does not support live recording. Please tap "Record via Phone Mic" below.'
       );
       return;
     }
@@ -196,13 +247,36 @@ export const Screen9_RecordingStudio: React.FC = () => {
       recorder.start(250);
       setRecordingState('recording');
       setDuration(0);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Microphone error:', err);
-      setUploadError(
-        uiLanguage === 'ta'
-          ? 'ஒலிவாங்கி அனுமதி மறுக்கப்பட்டது அல்லது சாதனத்தில் கிடைக்கவில்லை.'
-          : 'Microphone permission denied or not available. Please allow mic access.'
-      );
+      // In insecure contexts on mobile where getUserMedia failed
+      if (!isSecure && mobileAudioInputRef.current) {
+        mobileAudioInputRef.current.click();
+        return;
+      }
+
+      const isPermissionDenied = err?.name === 'NotAllowedError' || err?.name === 'PermissionDeniedError';
+      const isNotFound = err?.name === 'NotFoundError' || err?.name === 'DevicesNotFoundError';
+
+      if (isPermissionDenied) {
+        setUploadError(
+          uiLanguage === 'ta'
+            ? 'ஒலிவாங்கி அனுமதி மறுக்கப்பட்டது அல்லது பிரவுசரால் தடுக்கப்பட்டது. கீழே உள்ள "போன் ரெக்கார்டர்" பொத்தானைப் பயன்படுத்தவும்.'
+            : 'Microphone permission was denied or blocked by browser. Please tap "Record via Phone Mic" below.'
+        );
+      } else if (isNotFound) {
+        setUploadError(
+          uiLanguage === 'ta'
+            ? 'சாதனத்தில் மைக்ரோஃபோன் கண்டறியப்படவில்லை. கீழே உள்ள "போன் ரெக்கார்டர்" பொத்தானைப் பயன்படுத்தவும்.'
+            : 'No microphone found on this device. Please tap "Record via Phone Mic" below.'
+        );
+      } else {
+        setUploadError(
+          uiLanguage === 'ta'
+            ? 'ஒலிவாங்கி அனுமதி மறுக்கப்பட்டது அல்லது சாதனத்தில் கிடைக்கவில்லை. "போன் ரெக்கார்டர்" பொத்தானைப் பயன்படுத்தவும்.'
+            : 'Microphone permission denied or not available. Please tap "Record via Phone Mic" below.'
+        );
+      }
     }
   };
 
@@ -313,6 +387,8 @@ export const Screen9_RecordingStudio: React.FC = () => {
     setAudioUrl(null);
     setDuration(0);
     setRecordingState('idle');
+    if (mobileAudioInputRef.current) mobileAudioInputRef.current.value = '';
+    if (fileUploadInputRef.current) fileUploadInputRef.current.value = '';
   };
 
   const drawWaveform = () => {
@@ -445,6 +521,64 @@ export const Screen9_RecordingStudio: React.FC = () => {
         )}
       </div>
 
+      {/* Insecure HTTP Warning Banner for Mobile Devices */}
+      {typeof window !== 'undefined' && !window.isSecureContext && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' && (
+        <div
+          style={{
+            background: 'rgba(217, 83, 47, 0.08)',
+            border: '1px solid rgba(217, 83, 47, 0.3)',
+            borderRadius: '20px',
+            padding: '14px 20px',
+            marginBottom: '20px',
+            fontSize: '13px',
+            color: 'var(--slate-taupe-dark)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+            flexWrap: 'wrap',
+            textAlign: 'left',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <AlertCircle size={20} color="var(--terracotta)" style={{ flexShrink: 0 }} />
+            <span>
+              {uiLanguage === 'ta'
+                ? 'மொபைல் பிரவுசர்கள் HTTP-யில் நேரடி மைக்ரோஃபோனைத் தடுக்கும். தடங்கலின்றிப் பதிவு செய்ய "போன் ரெக்கார்டர்" பொத்தானைப் பயன்படுத்தவும்.'
+                : 'Mobile browsers block live mic on HTTP. Tap "Record via Phone Mic" below to record seamlessly with your phone.'}
+            </span>
+          </div>
+          <button
+            type="button"
+            className="btn-pill-primary"
+            style={{ fontSize: '12px', padding: '7px 16px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+            onClick={() => mobileAudioInputRef.current?.click()}
+          >
+            <Smartphone size={14} />
+            <span>{uiLanguage === 'ta' ? 'போன் ரெக்கார்டர்' : 'Phone Recorder'}</span>
+          </button>
+        </div>
+      )}
+
+      {/* Hidden Native Mobile Audio Capture Input */}
+      <input
+        ref={mobileAudioInputRef}
+        type="file"
+        accept="audio/*"
+        capture="user"
+        style={{ display: 'none' }}
+        onChange={handleAudioFileSelected}
+      />
+
+      {/* Hidden Audio File Upload Input */}
+      <input
+        ref={fileUploadInputRef}
+        type="file"
+        accept="audio/*,.webm,.wav,.mp3,.m4a,.aac,.ogg,.3gp"
+        style={{ display: 'none' }}
+        onChange={handleAudioFileSelected}
+      />
+
       {/* Recording Studio Center */}
       <div
         className="modern-card"
@@ -572,6 +706,32 @@ export const Screen9_RecordingStudio: React.FC = () => {
           </span>
         </div>
 
+        {/* Mobile & File Action Buttons for Quick Access */}
+        {recordingState === 'idle' && (
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '18px' }}>
+            <button
+              type="button"
+              className="btn-pill-secondary"
+              style={{ fontSize: '12px', padding: '8px 18px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+              onClick={() => mobileAudioInputRef.current?.click()}
+              title="Use phone native voice recorder"
+            >
+              <Smartphone size={15} />
+              <span>{uiLanguage === 'ta' ? '📱 போன் ரெக்கார்டர் மூலம் பதிவு செய்' : '📱 Record via Phone Mic'}</span>
+            </button>
+            <button
+              type="button"
+              className="btn-pill-outline"
+              style={{ fontSize: '12px', padding: '8px 16px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              onClick={() => fileUploadInputRef.current?.click()}
+              title="Upload pre-recorded audio file"
+            >
+              <Upload size={14} />
+              <span>{uiLanguage === 'ta' ? 'கோப்பு பதிவேற்று' : 'Upload Audio File'}</span>
+            </button>
+          </div>
+        )}
+
         {/* Live Audio Visualizer Canvas */}
         <canvas
           ref={canvasRef}
@@ -586,8 +746,19 @@ export const Screen9_RecordingStudio: React.FC = () => {
         />
 
         {uploadError && (
-          <div style={{ color: 'var(--status-red)', fontSize: '13px', marginBottom: '18px', fontWeight: 600 }}>
-            {uploadError}
+          <div style={{ marginBottom: '20px', maxWidth: '480px' }}>
+            <div style={{ color: 'var(--status-red)', fontSize: '13px', marginBottom: '12px', fontWeight: 600 }}>
+              {uploadError}
+            </div>
+            <button
+              type="button"
+              className="btn-pill-primary"
+              style={{ fontSize: '13px', padding: '9px 20px', display: 'inline-flex', alignItems: 'center', gap: '8px', margin: '0 auto' }}
+              onClick={() => mobileAudioInputRef.current?.click()}
+            >
+              <Smartphone size={16} />
+              <span>{uiLanguage === 'ta' ? '📱 போன் ரெக்கார்டரைப் பயன்படுத்து' : '📱 Record with Phone Voice Recorder'}</span>
+            </button>
           </div>
         )}
 

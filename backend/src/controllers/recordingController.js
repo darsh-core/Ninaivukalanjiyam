@@ -173,6 +173,7 @@ async function uploadRecording(req, res) {
 
         let filename;
         let fileSizeBytes = 0;
+        const detectedMime = req.file?.mimetype || mime_type || 'audio/webm';
 
         if (req.file) {
             filename = req.file.filename;
@@ -181,7 +182,7 @@ async function uploadRecording(req, res) {
             // Save base64 audio
             const buffer = Buffer.from(base64_data.replace(/^data:audio\/\w+;base64,/, ''), 'base64');
             fileSizeBytes = buffer.length;
-            const ext = mime_type.includes('wav') ? 'wav' : 'webm';
+            const ext = detectedMime.includes('wav') ? 'wav' : 'webm';
             filename = `rec_${Date.now()}_v${nextVersion}.${ext}`;
             const targetPath = path.join(__dirname, '../../uploads/recordings', filename);
             fs.writeFileSync(targetPath, buffer);
@@ -208,8 +209,8 @@ async function uploadRecording(req, res) {
             session_question_id,
             nextVersion,
             filename,
-            filename,
-            mime_type,
+            req.file?.originalname || filename,
+            detectedMime,
             fileSizeBytes,
             parseFloat(duration_seconds) || 0
         ]);
