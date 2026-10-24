@@ -27,6 +27,7 @@ export function useRecorder() {
   const [elapsed, setElapsed] = useState(0);
   const [blob, setBlob] = useState<Blob | null>(null);
   const [url, setUrl] = useState<string | null>(null);
+  const [requesting, setRequesting] = useState(false);
   const [error, setError] = useState<RecorderError | null>(null);
 
   const recorderRef = useRef<MediaRecorder | null>(null);
@@ -36,6 +37,8 @@ export function useRecorder() {
   const accumRef = useRef(0); // ms accumulated before the current running segment
   const segStartRef = useRef<number | null>(null);
   const finalSecondsRef = useRef(0);
+  const mountedRef = useRef(true);
+  const startingRef = useRef(false);
 
   const currentMs = () => accumRef.current + (segStartRef.current ? Date.now() - segStartRef.current : 0);
 
@@ -60,7 +63,10 @@ export function useRecorder() {
 
   // Unmount: stop tracks and the recorder without touching state.
   useEffect(
-    () => () => {
+    () => {
+      mountedRef.current = true;
+      return () => {
+      mountedRef.current = false;
       const r = recorderRef.current;
       if (r) {
         r.ondataavailable = null;
@@ -75,6 +81,7 @@ export function useRecorder() {
       }
       streamRef.current?.getTracks().forEach((t) => t.stop());
       if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+      };
     },
     [],
   );
@@ -84,7 +91,7 @@ export function useRecorder() {
     setState('error');
   }, []);
 
-  const start = useCallback(async () => {
+  const startInner = useCallback(async () => {
     setError(null);
     if (typeof window !== 'undefined' && !window.isSecureContext) return fail({ kind: 'insecure' });
     if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function' || typeof MediaRecorder === 'undefined') {
@@ -98,6 +105,10 @@ export function useRecorder() {
       if (name === 'NotAllowedError' || name === 'PermissionDeniedError' || name === 'SecurityError') return fail({ kind: 'denied' });
       if (name === 'NotFoundError' || name === 'DevicesNotFoundError') return fail({ kind: 'nomic' });
       return fail({ kind: 'unknown', detail: err instanceof Error ? err.message : undefined });
+    }
+    if (!mountedRef.current) {
+      stream.getTracks().forEach((tk) => tk.stop());
+      return;
     }
     try {
       const mimeType = pickMimeType();
@@ -128,6 +139,20 @@ export function useRecorder() {
       fail({ kind: 'unsupported', detail: err instanceof Error ? err.message : undefined });
     }
   }, [fail, releaseStream, setBlobAndUrl]);
+
+  const start = useCallback(async () => {
+    if (startingRef.current) return;
+    const rs = recorderRef.current?.state;
+    if (rs === 'recording' || rs === 'paused') return;
+    startingRef.current = true;
+    setRequesting(true);
+    try {
+      await startInner();
+    } finally {
+      startingRef.current = false;
+      if (mountedRef.current) setRequesting(false);
+    }
+  }, [startInner]);
 
   const pause = useCallback(() => {
     const r = recorderRef.current;
@@ -197,6 +222,7 @@ export function useRecorder() {
     blob,
     url,
     error,
+    requesting,
     getSeconds: () => finalSecondsRef.current,
     start,
     pause,

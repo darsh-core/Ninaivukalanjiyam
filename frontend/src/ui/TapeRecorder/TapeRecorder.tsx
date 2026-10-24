@@ -147,7 +147,7 @@ export function TapeRecorder({ onSave, disabled, onDirtyChange, size = 'lg' }: P
 
       <div className={s.controls}>
         {(state === 'idle' || micError) && (
-          <Button size={btnSize} disabled={disabled} onClick={() => void rec.start()}>
+          <Button size={btnSize} disabled={disabled || rec.requesting} onClick={() => void rec.start()}>
             ● {tr('பதிவைத் தொடங்கு', 'Start recording')}
           </Button>
         )}
@@ -208,7 +208,7 @@ export function TapeRecorder({ onSave, disabled, onDirtyChange, size = 'lg' }: P
         ref={fileRef}
         type="file"
         accept="audio/*"
-        capture="user"
+        capture
         className={s.fileInput}
         onChange={onFile}
         tabIndex={-1}
