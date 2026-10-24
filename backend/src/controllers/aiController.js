@@ -208,10 +208,35 @@ async function extractMemories(req, res) {
                             }
                         }
 
-                        const taTitle = m.title_tamil || m.title_english || 'நினைவு';
-                        const enTitle = m.title_english || null;
-                        const taDesc = m.description_tamil || m.description_english || transcript;
-                        const enDesc = m.description_english || null;
+                        let taTitle = m.title_tamil || m.title_english || 'நினைவு';
+                        let enTitle = m.title_english || null;
+                        let taDesc = m.description_tamil || m.description_english || transcript;
+                        let enDesc = m.description_english || null;
+
+                        // Refine Tamil description to guarantee literary written prose (no speech verse)
+                        if (taDesc && taDesc.trim()) {
+                            try {
+                                taDesc = await geminiService.refineTamilTranscriptToGrammaticalProse(taDesc);
+                            } catch (_) {}
+                        }
+
+                        // Ensure English description is grammatically flawless literary English
+                        if (!enDesc || /[\u0B80-\u0BFF]/.test(enDesc) || enDesc.trim() === taDesc.trim()) {
+                            try {
+                                enDesc = await geminiService.translateText(taDesc, 'ta-IN', 'en-IN');
+                            } catch (_) {}
+                        } else {
+                            try {
+                                enDesc = await geminiService.refineEnglishTranscriptToGrammaticalProse(enDesc);
+                            } catch (_) {}
+                        }
+
+                        // Ensure English title is translated if missing
+                        if (!enTitle || /[\u0B80-\u0BFF]/.test(enTitle)) {
+                            try {
+                                enTitle = await geminiService.translateText(taTitle, 'ta-IN', 'en-IN');
+                            } catch (_) {}
+                        }
 
                         candidateMemories.push({
                             title: `${taTitle}${enTitle ? ` (${enTitle})` : ''}`,
@@ -296,6 +321,47 @@ async function extractMemories(req, res) {
     }
 }
 
+function deriveBiographicalChapterTitle(qTamil = '', qEnglish = '', index = 1, isEnglish = false) {
+    const qTa = (qTamil || '').toLowerCase();
+    const qEn = (qEnglish || '').toLowerCase();
+
+    if (qTa.includes('குழந்தை') || qTa.includes('பால்ய') || qEn.includes('childhood') || qEn.includes('early years')) {
+        return isEnglish ? `${index}. Roots and Formative Childhood Years` : `${index}. பால்ய காலமும் பூர்வீக வேர்களும்`;
+    }
+    if (qTa.includes('வளர்ந்த ஊர்') || qTa.includes('வீடு') || qEn.includes('town') || qEn.includes('home')) {
+        return isEnglish ? `${index}. Native Soil and the Ancestral Home` : `${index}. வளர்ந்த ஊரும் பூர்வீக இல்லமும்`;
+    }
+    if (qTa.includes('விளையாட்டு') || qTa.includes('பாரம்பரிய') || qEn.includes('game') || qEn.includes('play')) {
+        return isEnglish ? `${index}. Traditional Games and Village Pastimes` : `${index}. பாரம்பரிய விளையாட்டுகளும் கிராமத்து வாழ்வியலும்`;
+    }
+    if (qTa.includes('பெற்றோர்') || qTa.includes('அம்மா') || qTa.includes('அப்பா') || qEn.includes('parent') || qEn.includes('father') || qEn.includes('mother')) {
+        return isEnglish ? `${index}. Parental Devotion and Guiding Principles` : `${index}. பெற்றோரின் பாசமும் குடும்ப நெறிமுறைகளும்`;
+    }
+    if (qTa.includes('உடன்பிறப்பு') || qTa.includes('அண்ணன்') || qTa.includes('தம்பி') || qTa.includes('தங்கை') || qTa.includes('அக்கா') || qEn.includes('sibling') || qEn.includes('brother') || qEn.includes('sister')) {
+        return isEnglish ? `${index}. Cherished Bonds with Siblings` : `${index}. உடன்பிறப்புகளுடனான பாசப் பிணைப்பு`;
+    }
+    if (qTa.includes('பள்ளி') || qTa.includes('படிப்பு') || qTa.includes('கல்வி') || qEn.includes('school') || qEn.includes('education') || qEn.includes('study')) {
+        return isEnglish ? `${index}. Formative School Days and Early Education` : `${index}. பள்ளிப் பருவமும் தொடக்கக் கல்வியும்`;
+    }
+    if (qTa.includes('ஆசிரியர்') || qTa.includes('வாத்தியார்') || qEn.includes('teacher') || qEn.includes('mentor')) {
+        return isEnglish ? `${index}. Beloved Teachers and Enduring Mentorship` : `${index}. நல்வழிகாட்டிய ஆசிரியர்களின் பெருந்தாக்கம்`;
+    }
+    if (qTa.includes('நண்பர்') || qTa.includes('தோழ') || qEn.includes('friend') || qEn.includes('companionship')) {
+        return isEnglish ? `${index}. Lifelong Friends and Companions` : `${index}. பால்ய கால நண்பர்களும் தோழமைகளும்`;
+    }
+    if (qTa.includes('திருமணம்') || qTa.includes('இல்லற') || qEn.includes('marriage') || qEn.includes('wedding')) {
+        return isEnglish ? `${index}. Sacred Matrimony and Family Life` : `${index}. இல்லற வாழ்வும் புனிதத் திருமணமும்`;
+    }
+    if (qTa.includes('வேலை') || qTa.includes('பணி') || qTa.includes('தொழில்') || qEn.includes('career') || qEn.includes('work') || qEn.includes('job')) {
+        return isEnglish ? `${index}. Professional Career and Dedicated Service` : `${index}. தொழில் மற்றும் அர்ப்பணிப்புப் பணி`;
+    }
+
+    if (isEnglish) {
+        return `${index}. Life Journey and Cherished Memories`;
+    }
+    return `${index}. வாழ்வியல் நினைவுகளும் வாழ்க்கை மைல்கற்களும்`;
+}
+
 // Generate biography draft for Life Story Builder
 async function generateStoryDraft(req, res) {
     try {
@@ -364,40 +430,45 @@ async function generateStoryDraft(req, res) {
                 let systemPrompt = '';
                 if (isEnglish) {
                     systemPrompt = `You are an acclaimed English family biographer writing a prestigious printed biography book for "Ninaivu Kalanjiyam" (Family Heritage Archive).
-Synthesize the elder "${englishName}"'s recorded interview memories into cohesive, beautifully written English biographical chapters.
-STRICT LANGUAGE & STYLE RULES:
-1. PURE ENGLISH PROSE:
-   - Everything (chapter titles and chapter content) MUST BE WRITTEN 100% IN NATURAL, ELEGANT ENGLISH PROSE.
-   - Do NOT include any Tamil script, Tamil words, or Tamil characters anywhere in the title or content.
-   - Translate all Tamil cultural terms and relationships respectfully into natural English (e.g. "Joyful Childhood in the Village", "Family Traditions and Ancestral Roots").
-   - Write in a warm, dignified, and literary biographical voice suitable for a published English family history book.
-2. STRICT FACTUAL FIDELITY:
-   - Only include facts, places, memories, family names, and milestones that the elder ACTUALLY mentioned in their answers. Do NOT invent outside people or events.
+Synthesize the elder "${englishName}"'s recorded interview memories into cohesive, beautifully structured biographical chapters in literary English.
+MANDATORY RULES:
+1. PURE LITERARY ENGLISH PROSE (STRICTLY NO SPEECH VERSE, NO Q&A):
+   - Never output in Question/Answer format (do NOT write "Question 1:... Answer:...").
+   - Weave the elder's spoken recollections into fluent, narrative chapters written in warm, dignified, publication-grade English prose.
+   - Strictly NO Tamil script or characters anywhere in the title or content.
+   - Use complete sentences, elegant transitions, and proper paragraph structure.
+2. EVOCATIVE CHAPTER TITLES:
+   - Provide dignified English chapter titles in Title Case (e.g. "1. Ancestral Roots and Early Childhood", "2. Formative School Years and Mentors", "3. Career, Milestones, and Lifelong Values").
+3. STRICT FACTUAL FIDELITY:
+   - Only include facts, people, places, dates, and life milestones actually stated by the narrator. Never invent fictional events.
 Return ONLY a valid JSON array:
 [
   {
     "id": "c1",
-    "title": "Chapter Title in English (e.g. 1. Joyful Childhood and Formative Years)",
-    "content": "Full narrative story written in fluent, literary English prose...",
+    "title": "1. Chapter Title in English",
+    "content": "Narrative biographical story written in fluent, grammatically flawless English prose...",
     "status": "confirmed"
   }
 ]`;
                 } else {
-                    systemPrompt = `You are an acclaimed Tamil family biographer and literary author for "Ninaivu Kalanjiyam".
-Synthesize the elder "${name}"'s recorded interview answers into cohesive, beautifully structured biographical chapters in literary Tamil.
+                    systemPrompt = `You are an acclaimed Tamil family biographer and literary author for "Ninaivu Kalanjiyam" (நினைவுக் களஞ்சியம்).
+Synthesize the elder "${name}"'s recorded interview answers into cohesive, beautifully structured biographical chapters in literary Tamil prose.
 CRITICAL GRAMMAR AND STYLE RULES:
-1. STRICTLY NO SPEECH VERSE OR COLLOQUIAL SPOKEN TAMIL (பேச்சு வழக்கு முற்றிலும் கூடாது).
-   - The writing must be in grammatically correct, refined written Tamil prose (இலக்கண ரீதியாகச் சரியான நயமான எழுத்துத் தமிழ் உரைநடை).
-   - Convert all spoken endings, colloquial dialect, and oral idioms into standard written literary Tamil (e.g., படிச்சோம் -> படித்தோம், ஸ்கூல்ல -> பள்ளியில், ஆத்துக்குப் போயி -> ஆற்றுக்குச் சென்று, பண்ணுவோம் -> செய்வோம், ரெண்டு -> இரண்டு, வச்சிருப்பாங்க -> வைத்திருப்பார்கள், போயிருவோம் -> சென்றுவிடுவோம்).
-   - Ensure the prose is elegant, respectful, and dignified to read in a printed family history book.
-2. STRICT FACTUAL FIDELITY:
-   - Only include facts, places, memories, family names, and life milestones that the elder ACTUALLY mentioned in their answers. Do NOT invent outside places or people.
+1. STRICTLY NO SPEECH VERSE OR COLLOQUIAL SPOKEN TAMIL (பேச்சு வழக்கு முற்றிலும் கூடாது):
+   - The entire biography must be written in grammatically correct, refined written Tamil prose (இலக்கண ரீதியாகச் சரியான நயமான தூய எழுத்துத் தமிழ் உரைநடை).
+   - Convert all spoken endings, colloquial forms, and dialect into standard literary written Tamil (படிச்சோம் -> படித்தோம், ஸ்கூல்ல -> பள்ளியில், ஆத்துக்குப் போயி -> ஆற்றுக்குச் சென்று, பண்ணுவோம் -> செய்வோம், ரெண்டு -> இரண்டு, வச்சிருப்பாங்க -> வைத்திருப்பார்கள், போயிருவோம் -> சென்றுவிடுவோம்).
+2. NARRATIVE BIOGRAPHY STRUCTURE (கேள்வி-பதில் முறை கூடாது):
+   - ஒருபோதும் நேர்காணல் கேள்வி-பதில் பாணியில் (Q&A) எழுதக் கூடாது.
+   - நினைவாளரின் பதில்களை ஒன்றிணைத்து, கதைப்போக்குடன் கூடிய நயமான வரலாற்று அத்தியாயங்களாகத் தொகுக்க வேண்டும்.
+   - Dignified chapter titles (e.g. "1. பூர்வீகமும் பால்ய கால பசுமை நினைவுகளும்", "2. பள்ளிப் பருவமும் நல்வழிகாட்டிய ஆசிரியர்களும்", "3. தொழில் அர்ப்பணிப்பும் குடும்ப விழுமியங்களும்").
+3. STRICT FACTUAL FIDELITY:
+   - Only include facts, places, memories, family names, and milestones that the elder ACTUALLY mentioned in their answers. Do NOT invent outside places or people.
 Return ONLY a valid JSON array in pure literary Tamil:
 [
   {
     "id": "c1",
-    "title": "அத்தியாயத் தலைப்பு (Chapter Title in Tamil)",
-    "content": "இலக்கண ரீதியாகச் சரியான நயமான தமிழ் உரைநடை பத்தி...",
+    "title": "1. அத்தியாயத் தலைப்பு தமிழில்",
+    "content": "இலக்கண ரீதியாகச் சரியான நயமான தமிழ் உரைநடை பத்திகள்...",
     "status": "confirmed"
   }
 ]`;
@@ -406,7 +477,7 @@ Return ONLY a valid JSON array in pure literary Tamil:
                 const aiResp = await geminiService.chatCompletion([
                     { role: 'system', content: systemPrompt },
                     { role: 'user', content: combinedTranscripts }
-                ], 1600);
+                ], 1800);
 
                 const jsonMatch = aiResp.match(/\[\s*\{[\s\S]*\}\s*\]/);
                 if (jsonMatch) {
@@ -433,7 +504,7 @@ Return ONLY a valid JSON array in pure literary Tamil:
             }
         }
 
-        // If AI generation was unavailable, map directly from actual recordings and questions
+        // If AI generation was unavailable, synthesize from recordings using dignified chapter titles and refined prose
         if (!selectedChapters || selectedChapters.length === 0) {
             selectedChapters = await Promise.all(transcriptsRes.rows.map(async (row, idx) => {
                 let contentText = isEnglish ? (row.transcript_text_english || row.transcript_text) : row.transcript_text;
@@ -442,6 +513,10 @@ Return ONLY a valid JSON array in pure literary Tamil:
                         try {
                             contentText = await geminiService.translateText(contentText, 'ta-IN', 'en-IN');
                         } catch (_) {}
+                    } else if (contentText) {
+                        try {
+                            contentText = await geminiService.refineEnglishTranscriptToGrammaticalProse(contentText);
+                        } catch (_) {}
                     }
                 } else if (contentText) {
                     try {
@@ -449,9 +524,13 @@ Return ONLY a valid JSON array in pure literary Tamil:
                     } catch (_) {}
                 }
 
-                const titleText = isEnglish
-                    ? `${idx + 1}. ${row.question_english || 'Chapter ' + (idx + 1)}`
-                    : `${idx + 1}. ${row.question_tamil}`;
+                // Generate dignified biographical chapter title instead of raw question prompt
+                const titleText = deriveBiographicalChapterTitle(
+                    row.question_tamil,
+                    row.question_english,
+                    idx + 1,
+                    isEnglish
+                );
 
                 return {
                     id: `c${idx + 1}`,

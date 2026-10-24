@@ -154,25 +154,38 @@ async function regenerateTranscript(req, res) {
 }
 
 /**
- * Refine raw spoken/colloquial Tamil transcript text into grammatically correct written Tamil prose
+ * Refine raw spoken/colloquial transcript text into grammatically correct written literary prose (Tamil or English)
  */
 async function refineTranscriptText(req, res) {
     try {
-        const { text } = req.body;
+        const { text, language = 'ta' } = req.body;
         if (!text || typeof text !== 'string' || text.trim() === '') {
             return res.status(400).json({ success: false, message: 'Text is required for refinement.' });
         }
 
-        const refined = await geminiService.refineTamilTranscriptToGrammaticalProse(text);
-        let english = null;
-        try {
-            english = await geminiService.translateText(refined, 'ta-IN', 'en-IN');
-        } catch (_) {}
+        const isEnglishInput = language === 'en' || (!/[\u0B80-\u0BFF]/.test(text) && /[a-zA-Z]{3,}/.test(text));
+
+        let refinedText = '';
+        let refinedEnglish = null;
+
+        if (isEnglishInput) {
+            refinedEnglish = await geminiService.refineEnglishTranscriptToGrammaticalProse(text);
+            try {
+                refinedText = await geminiService.translateText(refinedEnglish, 'en-IN', 'ta-IN');
+            } catch (_) {
+                refinedText = text;
+            }
+        } else {
+            refinedText = await geminiService.refineTamilTranscriptToGrammaticalProse(text);
+            try {
+                refinedEnglish = await geminiService.translateText(refinedText, 'ta-IN', 'en-IN');
+            } catch (_) {}
+        }
 
         return res.status(200).json({
             success: true,
-            refined_text: refined,
-            refined_english: english
+            refined_text: refinedText,
+            refined_english: refinedEnglish
         });
     } catch (error) {
         console.error('Refine transcript error:', error);

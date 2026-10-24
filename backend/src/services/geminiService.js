@@ -24,26 +24,133 @@ function getGeminiModel() {
  * Dictionary of colloquial Tamil patterns mapped to refined written literary Tamil
  */
 const TAMIL_NORMALIZATION_MAP = [
+    // Numbers
+    ['ஒன்னு', 'ஒன்று'],
     ['ரெண்டு', 'இரண்டு'],
     ['மூணு', 'மூன்று'],
     ['நாலு', 'நான்கு'],
     ['அஞ்சு', 'ஐந்து'],
+    ['ஆறு', 'ஆறு'],
+    ['ஏழு', 'ஏழு'],
+    ['எட்டு', 'எட்டு'],
+    ['ஒம்போது', 'ஒன்பது'],
+    ['பத்து', 'பத்து'],
     ['பதினொன்னு', 'பதினொன்று'],
+
+    // Verbs - Study / Learn
     ['படிச்சோம்', 'படித்தோம்'],
     ['படிச்சேன்', 'படித்தேன்'],
     ['படிச்சாங்க', 'படித்தார்கள்'],
+    ['படிச்சாரு', 'படித்தார்'],
+    ['படிச்சது', 'படித்தது'],
+    ['படிச்சிட்டு', 'படித்துவிட்டு'],
+    ['படிச்சுட்டு', 'படித்துவிட்டு'],
+
+    // Verbs - Do / Work
     ['செஞ்சோம்', 'செய்தோம்'],
     ['செஞ்சேன்', 'செய்தேன்'],
     ['செஞ்சாங்க', 'செய்தார்கள்'],
+    ['செஞ்சாரு', 'செய்தார்'],
+    ['செஞ்சது', 'செய்தது'],
+    ['செஞ்சி', 'செய்து'],
+    ['செஞ்சு', 'செய்து'],
     ['பண்ணுவோம்', 'செய்வோம்'],
     ['பண்ணினோம்', 'செய்தோம்'],
+    ['பண்ணினேன்', 'செய்தேன்'],
+    ['பண்ணினாங்க', 'செய்தார்கள்'],
+    ['பண்ணினாரு', 'செய்தார்'],
+    ['பண்ணிட்டோம்', 'செய்துவிட்டோம்'],
+    ['பண்ணிட்டாங்க', 'செய்துவிட்டார்கள்'],
+    ['பண்ணி', 'செய்து'],
+
+    // Verbs - Go / Travel
     ['போயிருவோம்', 'சென்றுவிடுவோம்'],
     ['போவோம்', 'செல்வோம்'],
     ['போயிட்டு', 'சென்றுவிட்டு'],
+    ['போய்ட்டு', 'சென்றுவிட்டு'],
+    ['போயிட்டாங்க', 'சென்றுவிட்டார்கள்'],
+    ['போய்ட்டாங்க', 'சென்றுவிட்டார்கள்'],
+    ['போனாங்க', 'சென்றார்கள்'],
+    ['போனாரு', 'சென்றார்'],
+    ['போனேன்', 'சென்றேன்'],
+    ['போனோம்', 'சென்றோம்'],
+    ['போச்சு', 'சென்றது'],
+
+    // Verbs - Come
+    ['வந்திருப்பாங்க', 'வந்திருப்பார்கள்'],
+    ['வந்தாங்க', 'வந்தார்கள்'],
+    ['வந்தாரு', 'வந்தார்'],
+    ['வந்துச்சு', 'வந்தது'],
+    ['வந்துச்சி', 'வந்தது'],
+
+    // Verbs - Keep / Have
     ['வச்சிருப்பாங்க', 'வைத்திருப்பார்கள்'],
+    ['வச்சிருந்தாங்க', 'வைத்திருந்தார்கள்'],
+    ['வச்சிருந்தோம்', 'வைத்திருந்தோம்'],
+    ['வச்சிருக்காங்க', 'வைத்திருக்கிறார்கள்'],
+    ['வெச்சிருக்கோம்', 'வைத்திருக்கிறோம்'],
+    ['வெச்சோம்', 'வைத்தோம்'],
+    ['வச்சி', 'வைத்து'],
+    ['வெச்சு', 'வைத்து'],
+
+    // Verbs - Be / Exist
     ['இருக்காப்ல', 'இருக்கிறார்'],
+    ['இருக்காங்க', 'இருக்கிறார்கள்'],
+    ['இருந்தாங்க', 'இருந்தார்கள்'],
+    ['இருந்தோமுங்க', 'இருந்தோம்'],
+    ['இருந்திச்சு', 'இருந்தது'],
+    ['இருந்துச்சு', 'இருந்தது'],
     ['இல்ல', 'இல்லை'],
+
+    // Verbs - Speak / Tell / Ask
+    ['சொன்னாங்க', 'கூறினார்கள்'],
+    ['சொன்னாரு', 'கூறினார்'],
+    ['சொல்லிட்டாங்க', 'கூறிவிட்டார்கள்'],
+    ['சொல்லுச்சு', 'கூறியது'],
+    ['கேட்டாங்க', 'கேட்டார்கள்'],
+    ['கேட்டாரு', 'கேட்டார்'],
+    ['கேட்டதுக்கு', 'கேட்டதற்கு'],
+
+    // Verbs - See
+    ['பாத்தாங்க', 'பார்த்தார்கள்'],
+    ['பாத்தோமுங்க', 'பார்த்தோம்'],
+    ['பாத்தோம்', 'பார்த்தோம்'],
+    ['பாத்தேன்', 'பார்த்தேன்'],
+    ['பாத்தாரு', 'பார்த்தார்'],
+
+    // Verbs - Eat / Play
+    ['சாப்ட்டோம்', 'சாப்பிட்டோம்'],
+    ['சாப்பிட்டாங்க', 'சாப்பிட்டார்கள்'],
+    ['சாப்டுட்டு', 'சாப்பிட்டுவிட்டு'],
+    ['விளையாடுனோம்', 'விளையாடினோம்'],
+    ['விளையாடுவாங்க', 'விளையாடுவார்கள்'],
+
+    // Verbs - Know / Understand
+    ['தெரிஞ்சுது', 'தெரிந்தது'],
+    ['தெரிஞ்சது', 'தெரிந்தது'],
+    ['புரிஞ்சுது', 'புரிந்தது'],
+
+    // Adverbs / Expressions
+    ['முழுசா', 'முழுமையாக'],
+    ['நல்லா', 'நன்றாக'],
+    ['ரொம்ப', 'மிகவும்'],
+    ['கொஞ்சம்', 'சிறிது'],
     ['காலமாயிட்டாங்க', 'காலமாகிவிட்டார்கள்'],
+    ['அடிச்சாரு', 'அடித்தார்'],
+    ['முழி மேலேயே', 'கண்களின் அருகே'],
+
+    // Pronouns & Titles
+    ['நாங்க', 'நாங்கள்'],
+    ['நீங்க', 'நீங்கள்'],
+    ['அவங்க', 'அவர்கள்'],
+    ['இவங்க', 'இவர்கள்'],
+    ['அவுக', 'அவர்கள்'],
+    ['இவுக', 'இவர்கள்'],
+    ['வாத்தியாரு', 'ஆசிரியர்'],
+    ['வாத்தியார்', 'ஆசிரியர்'],
+    ['டீச்சரம்மா', 'ஆசிரியை'],
+
+    // Locative / Nouns
     ['தெருவுல', 'தெருவில்'],
     ['வீதியில', 'வீதியில்'],
     ['பள்ளிக்கூடத்துல', 'பள்ளிக்கூடத்தில்'],
@@ -52,15 +159,14 @@ const TAMIL_NORMALIZATION_MAP = [
     ['ஸ்கூல்', 'பள்ளி'],
     ['வீட்ல', 'வீட்டில்'],
     ['ஊர்ல', 'ஊரில்'],
+    ['ரோட்ல', 'சாலையில்'],
     ['கிணத்துல', 'கிணற்றில்'],
     ['ஆத்துக்குப்', 'ஆற்றுக்குச்'],
     ['ஆத்துக்கு', 'ஆற்றுக்கு'],
-    ['ஓடுச்சு', 'ஓடியது'],
-    ['அடிச்சாரு', 'அடித்தார்'],
-    ['கேட்டதுக்கு', 'கேட்டதற்கு'],
-    ['சொன்னாங்க', 'கூறினார்கள்'],
-    ['வாத்தியார்', 'ஆசிரியர்'],
-    ['முழி மேலேயே', 'கண்களின் அருகே']
+    ['ஆத்துல', 'ஆற்றில்'],
+    ['காலேஜ்ல', 'கல்லூரியில்'],
+    ['காலேஜுக்கு', 'கல்லூரிக்கு'],
+    ['காலேஜ்', 'கல்லூரி']
 ];
 
 /**
@@ -256,12 +362,13 @@ async function transcribeSingleClipWithGemini(buffer, filename = 'recording.webm
 
     const promptText = `You are a professional Tamil oral archivist and audio transcriber.
 Listen to this spoken Tamil audio recording carefully.
-Transcribe everything spoken accurately into pure Tamil script (தமிழ் எழுத்தில்).
+Transcribe everything spoken accurately into clear, standard written Tamil script (தூய எழுத்துத் தமிழில்).
 MANDATORY RULES:
 1. Provide ONLY the transcribed Tamil text.
 2. Do not translate to English.
-3. Do not add conversational remarks, introductory prefixes, timestamps, or markdown quotes.
-4. If the audio is silent or contains only background noise with no speech, return: "ஒலிப்பதிவில் பேச்சு எதுவும் கண்டறியப்படவில்லை (No speech detected in audio)."`;
+3. Filter out repetitive verbal hesitation stutters or false starts (e.g., 'சொல்லு... சொல்லுங்க...', 'வந்து... வந்து...').
+4. Do not add conversational remarks, introductory prefixes, timestamps, or markdown quotes.
+5. If the audio is silent or contains only background noise with no speech, return: "ஒலிப்பதிவில் பேச்சு எதுவும் கண்டறியப்படவில்லை (No speech detected in audio)."`;
 
     let lastError = null;
 
@@ -443,6 +550,7 @@ async function transcribeAudio(audioInput, filename = 'recording.webm', mimeType
 
 /**
  * Translate Tamil text to English (or vice versa) using Gemini (Free)
+ * Guarantees output is grammatically flawless literary prose, not broken speech verse.
  * @param {string} text
  * @param {string} sourceLang
  * @param {string} targetLang
@@ -454,20 +562,51 @@ async function translateText(text, sourceLang = 'ta-IN', targetLang = 'en-IN') {
         return text || '';
     }
 
-    const srcName = sourceLang.startsWith('ta') ? 'Tamil' : 'English';
-    const tgtName = targetLang.startsWith('ta') ? 'Tamil' : 'English';
+    const isTamilToEnglish = sourceLang.startsWith('ta') && targetLang.startsWith('en');
+    const isEnglishToTamil = sourceLang.startsWith('en') && targetLang.startsWith('ta');
 
-    const prompt = `Translate the following ${srcName} text accurately and naturally into ${tgtName}.
-Preserve cultural terms, personal names, and respectful tone.
+    let prompt = '';
+    if (isTamilToEnglish) {
+        prompt = `You are an acclaimed English literary biographer and translator for Ninaivu Kalanjiyam (Family Heritage Archive).
+Translate the following Tamil biographical memory into grammatically flawless, natural literary English prose.
+MANDATORY RULES:
+1. STRICTLY NO BROKEN CONVERSATIONAL ENGLISH OR SPEECH VERSE:
+   - Do NOT translate literally word-for-word.
+   - Transform colloquial spoken expressions, oral mannerisms, and dialect into elegant, dignified narrative English suitable for a printed biography book.
+   - Use complete sentences, correct subject-verb agreement, and natural English idioms while maintaining cultural warmth and respect.
+2. PRESERVE 100% FACTUAL ACCURACY:
+   - Retain all personal names, family relations, places, dates, years, and life events with absolute accuracy.
+3. Return ONLY the polished English translation without quotes, prefixes, or commentary.
+
+Tamil Text:
+${text}`;
+    } else if (isEnglishToTamil) {
+        prompt = `You are an acclaimed Tamil literary scholar and biographer for "Ninaivu Kalanjiyam" (நினைவுக் களஞ்சியம்).
+Translate the following English biographical text into grammatically pure, refined written literary Tamil prose (இலக்கண ரீதியான தூய எழுத்துத் தமிழ் உரைநடை).
+MANDATORY RULES:
+1. STRICTLY NO SPEECH VERSE OR COLLOQUIAL TAMIL (பேச்சு வழக்கு முற்றிலும் கூடாது):
+   - Use standard literary written Tamil with correct grammatical sandhi and verbal endings.
+2. PRESERVE 100% FACTUAL ACCURACY:
+   - Retain all names, dates, places, and facts.
+3. Return ONLY the translated Tamil text without quotes or commentary.
+
+English Text:
+${text}`;
+    } else {
+        const srcName = sourceLang.startsWith('ta') ? 'Tamil' : 'English';
+        const tgtName = targetLang.startsWith('ta') ? 'Tamil' : 'English';
+        prompt = `Translate the following ${srcName} text accurately and naturally into ${tgtName}.
+Preserve cultural terms, personal names, and respectful tone. Write in grammatically flawless literary prose.
 Return ONLY the translation without quotes or commentary.
 
 Text:
 ${text}`;
+    }
 
     try {
         const translated = await chatCompletion([
             { role: 'user', content: prompt }
-        ], 1200);
+        ], 1400);
 
         return translated ? translated.trim().replace(/^["']|["']$/g, '') : text;
     } catch (err) {
@@ -557,6 +696,7 @@ async function textToSpeech(text, speaker = 'indian_female', targetLang = null) 
 
 /**
  * Extract life memories, traditions, milestones, and emotions from Tamil interview transcript
+ * Guarantees output is structured, grammatically correct literary prose in both Tamil and English (NEVER speech verse).
  * @param {string} transcriptText - Raw spoken Tamil text
  * @param {string} narratorName - Name of the elder
  * @returns {Promise<Array<object>>}
@@ -566,20 +706,33 @@ async function extractMemories(transcriptText, narratorName = 'குடும�
         return [];
     }
 
-    const systemPrompt = `You are an AI family historian and oral archivist for "Ninaivu Kalanjiyam" (நினைவு களஞ்சியம்).
-Analyze the spoken Tamil memories of elder "${narratorName}".
-Extract distinct life events, childhood memories, family traditions, and milestones into a JSON array.
-STRICT RULES:
-1. Only extract events directly mentioned in the transcript.
-2. CRITICAL YEAR RULE: Do NOT add, guess, or extrapolate any year unless the narrator explicitly mentions a specific year (e.g. 1972, 1968) in the spoken text! If no specific year is explicitly spoken in the transcript, "approximate_year" MUST be null.
+    const systemPrompt = `You are an acclaimed AI family biographer and oral heritage historian for "Ninaivu Kalanjiyam" (நினைவுக் களஞ்சியம்).
+Analyze the recorded interview memories of elder "${narratorName}".
+Extract distinct life milestones, formative memories, family traditions, and turning points into a structured JSON array.
+
+CRITICAL GRAMMAR & PROSE RULES (STRICTLY NO SPEECH VERSE):
+1. ELEGANT LITERARY TAMIL (இலக்கண ரீதியான தூய எழுத்துத் தமிழ்):
+   - "title_tamil": Must be a dignified, concise title in written literary Tamil (e.g. "பள்ளிப் படிப்பும் நல்வழிகாட்டிய ஆசிரியர்களும்", NOT "ஸ்கூல்ல படிச்சது").
+   - "description_tamil": Must be a well-structured, grammatically complete narrative paragraph in literary written Tamil (இலக்கண ரீதியான தூய எழுத்துத் தமிழ் உரைநடை).
+   - STRICTLY FORBIDDEN: Spoken Tamil dialect, colloquial endings (படிச்சேன், செஞ்சோம், போயிருவோம்), conversational fillers (வந்து, அப்புறம், அப்படிதான்), and broken sentence fragments.
+2. FLAWLESS LITERARY ENGLISH:
+   - "title_english": Must be an elegant, concise title in Title Case (e.g. "Formative Schooling and the Impact of Teachers").
+   - "description_english": Must be fluent, grammatically flawless narrative English prose written in complete sentences (e.g. "Recalls the formative years spent at the CSI Elementary School, reflecting on the kindness and dedication of early mentors.").
+   - STRICTLY FORBIDDEN: Word-for-word spoken translation, broken grammar, or conversational slang.
+3. STRICT FACTUAL FIDELITY & NO HALLUCINATION:
+   - Only extract events and memories explicitly recounted by the narrator. Never invent outside people, places, or events.
+4. CRITICAL YEAR RULE:
+   - Do NOT guess or extrapolate any calendar year unless the narrator explicitly states a 4-digit year (e.g., 1972, 1968) in the spoken text.
+   - If no year was explicitly stated, "approximate_year" MUST be null.
+
 Return ONLY a valid JSON array of objects with this schema:
 [
   {
-    "title_tamil": "நினைவின் தலைப்பு",
-    "title_english": "Title in English",
-    "description_tamil": "சுருக்கமான விளக்கம்",
-    "description_english": "English description",
-    "event_type": "Childhood | Tradition | Career | Marriage | Family | Wisdom",
+    "title_tamil": "நினைவின் தலைப்பு (தூய தமிழ்)",
+    "title_english": "Title in English (Title Case)",
+    "description_tamil": "இலக்கண ரீதியான தூய தமிழ் உரைநடை விளக்கம்...",
+    "description_english": "Grammatically complete, fluent narrative English description...",
+    "event_type": "Childhood | Education | Career | Marriage | Family | Tradition | Wisdom | Milestone",
     "approximate_year": null
   }
 ]`;
@@ -588,7 +741,7 @@ Return ONLY a valid JSON array of objects with this schema:
         const responseText = await chatCompletion([
             { role: 'system', content: systemPrompt },
             { role: 'user', content: transcriptText }
-        ], 1200);
+        ], 1400);
 
         const cleaned = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
         const jsonMatch = cleaned.match(/\[\s*\{[\s\S]*\}\s*\]/);
@@ -687,10 +840,15 @@ async function refineTamilTranscriptToGrammaticalProse(rawSpokenText) {
         return rawSpokenText || '';
     }
 
+    if (rawSpokenText.includes('ஒலிப்பதிவில் பேச்சு எதுவும் கண்டறியப்படவில்லை') || rawSpokenText.includes('No speech detected in audio')) {
+        return rawSpokenText;
+    }
+
     let cleaned = rawSpokenText
         .replace(/^(சொல்லு[\.\s,]*)+/gi, '')
         .replace(/^(பேசுங்க[\.\s,]*)+/gi, '')
         .replace(/^(சொல்லுங்க[\.\s,]*)+/gi, '')
+        .replace(/^(ஆமா[\.\s,]*)+/gi, '')
         .trim();
 
     if (!cleaned) return rawSpokenText;
@@ -701,25 +859,27 @@ async function refineTamilTranscriptToGrammaticalProse(rawSpokenText) {
     }
 
     try {
-        const systemPrompt = `You are an acclaimed Tamil scholar and biographer for a family heritage archive.
+        const systemPrompt = `You are an acclaimed Tamil scholar and biographer for a prestigious family heritage archive.
 Transform the provided raw spoken/colloquial Tamil interview transcript into grammatically correct, refined written Tamil prose (இலக்கண ரீதியான தூய எழுத்துத் தமிழ் உரைநடை).
 MANDATORY RULES:
-1. STRICTLY NO SPEECH VERSE OR COLLOQUIAL SPOKEN TAMIL (பேச்சு வழக்கு முற்றிலும் கூடாது).
-   - Convert spoken endings and colloquial forms into standard written literary Tamil.
+1. STRICTLY NO SPEECH VERSE OR COLLOQUIAL SPOKEN TAMIL (பேச்சு வழக்கு முற்றிலும் கூடாது):
+   - Convert spoken endings, colloquial dialect, and oral mannerisms into standard written literary Tamil prose.
      Examples:
-     * "படிச்சோம்" -> "படித்தோம்", "படிச்சேன்" -> "படித்தேன்", "படிச்சாங்க" -> "படித்தார்கள்"
+     * "படிச்சோம்" -> "படித்தோம்", "படிச்சேன்" -> "படித்தேன்", "படிச்சாங்க" -> "படித்தார்கள்", "படிச்சாரு" -> "படித்தார்"
      * "செஞ்சோம்" -> "செய்தோம்", "செஞ்சேன்" -> "செய்தேன்", "பண்ணுவோம்" -> "செய்வோம்", "பண்ணினோம்" -> "செய்தோம்"
-     * "போயிருவோம்" -> "சென்றுவிடுவோம்", "போவோம்" -> "செல்வோம்", "போயிட்டு" -> "சென்றுவிட்டு"
-     * "வச்சிருப்பாங்க" -> "வைத்திருப்பார்கள்", "இருக்காப்ல" -> "இருக்கிறார்"
+     * "போயிருவோம்" -> "சென்றுவிடுவோம்", "போவோம்" -> "செல்வோம்", "போயிட்டு" -> "சென்றுவிட்டு", "போனாங்க" -> "சென்றார்கள்"
+     * "வச்சிருப்பாங்க" -> "வைத்திருப்பார்கள்", "இருக்காப்ல" -> "இருக்கிறார்", "இருந்தாங்க" -> "இருந்தார்கள்"
      * "தெருவுல" -> "தெருவில்", "வீதியில" -> "வீதியில்", "ஸ்கூல்ல" / "பள்ளிக்கூடத்துல" -> "பள்ளிக்கூடத்தில்"
-     * "ரெண்டு" -> "இரண்டு", "மூணு" -> "மூன்று", "அஞ்சு" -> "ஐந்து", "பதினொன்னு" -> "பதினொன்று"
+     * "ரெண்டு" -> "இரண்டு", "மூணு" -> "மூன்று", "நாலு" -> "நான்கு", "அஞ்சு" -> "ஐந்து", "பதினொன்னு" -> "பதினொன்று"
      * "இல்ல" -> "இல்லை", "காலமாயிட்டாங்க" -> "காலமாகிவிட்டார்கள்"
-     * "அடிச்சாரு" -> "அடித்தார்", "கேட்டதுக்கு" -> "கேட்டதற்கு"
-2. Fix conversational hesitation, repetitive fillers ("வந்து", "அப்படிதான்", "கண்ணு"), and obvious speech-to-text misrecognitions so sentences flow logically and read gracefully like a printed biography.
+     * "அடிச்சாரு" -> "அடித்தார்", "கேட்டதுக்கு" -> "கேட்டதற்கு", "சொன்னாங்க" -> "கூறினார்கள்"
+2. ELIMINATE SPOKEN HESITATIONS & FILLERS:
+   - Remove oral filler words ("வந்து", "அதாவது", "அப்புறம்", "அப்படித்தான்", "கண்ணு") and conversational repetitions.
+   - Punctuate sentences properly with commas and full stops so the text reads like a printed biography book.
 3. PRESERVE 100% FACTUAL ACCURACY:
-   - Do NOT delete, change, or fabricate any names, people, schools, places, dates, years, or events mentioned by the speaker.
-4. Output formatting:
-   - Return ONLY the clean, polished Tamil prose.
+   - Do NOT delete, change, or fabricate any names, people, relations, schools, places, dates, years, or events mentioned by the speaker.
+4. OUTPUT FORMAT:
+   - Return ONLY the clean, polished written literary Tamil prose.
    - Do NOT add quotes, markdown formatting, explanations, or introductory text.`;
 
         const responseText = await chatCompletion([
@@ -738,6 +898,56 @@ MANDATORY RULES:
     return ruleBasedTamilNormalizer(cleaned);
 }
 
+/**
+ * Refine English transcript or rough translation into grammatically flawless, fluent literary English prose
+ * Eliminates conversational hesitations, repetitive filler words, and awkward literal idioms.
+ * @param {string} text - Raw or translated English text
+ * @returns {Promise<string>} - Polished, publication-grade biographical English prose
+ */
+async function refineEnglishTranscriptToGrammaticalProse(text) {
+    if (!text || typeof text !== 'string' || text.trim().length < 5) {
+        return text || '';
+    }
+
+    if (text.includes('No speech detected in audio')) {
+        return text;
+    }
+
+    const apiKey = getApiKey();
+    if (!apiKey) {
+        return text.trim();
+    }
+
+    try {
+        const systemPrompt = `You are a prestigious English biographer and editor for Ninaivu Kalanjiyam (Family Heritage Archive).
+Transform the provided English text into grammatically flawless, natural, dignified literary English prose suitable for a published biography book.
+MANDATORY RULES:
+1. STRICTLY NO CONVERSATIONAL FILLERS OR SPEECH VERSE:
+   - Remove conversational hesitation and verbal fillers ("like", "you know", "actually", "then then", "and all", "so so").
+   - Fix broken sentence fragments, run-on thoughts, and awkward word-for-word idioms.
+   - Use complete sentences, correct subject-verb agreement, elegant transition words, and proper punctuation.
+2. PRESERVE 100% FACTUAL ACCURACY:
+   - Do NOT delete, invent, or alter any personal names, family relations, dates, years, locations, or life events.
+3. OUTPUT FORMAT:
+   - Return ONLY the clean, polished English prose.
+   - Do NOT add quotes, markdown headers, explanations, or commentary.`;
+
+        const responseText = await chatCompletion([
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: text.trim() }
+        ], 1400);
+
+        const refined = responseText ? responseText.trim().replace(/^["']|["']$/g, '') : '';
+        if (refined && refined.length > 5) {
+            return refined;
+        }
+    } catch (err) {
+        console.warn('Gemini English grammar refinement notice:', err.message);
+    }
+
+    return text.trim();
+}
+
 module.exports = {
     transcribeAudio,
     translateText,
@@ -747,5 +957,6 @@ module.exports = {
     generateChapterDraft,
     generateFollowUpQuestions,
     refineTamilTranscriptToGrammaticalProse,
+    refineEnglishTranscriptToGrammaticalProse,
     ruleBasedTamilNormalizer
 };

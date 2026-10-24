@@ -527,7 +527,29 @@ export const Screen12_MemoriesTimeline: React.FC = () => {
             gap: '26px',
           }}
         >
-          {displayedEvents.map((event) => (
+          {displayedEvents.map((event) => {
+            const isEn = uiLanguage === 'en';
+            const parenMatch = event.title?.match(/^(.*?)\s*\(([^)]+)\)\s*$/);
+            const eventTitleTamil = event.title_tamil || (parenMatch ? parenMatch[1].trim() : event.title);
+            const eventTitleEnglish = event.title_english || (parenMatch ? parenMatch[2].trim() : event.title);
+
+            const displayTitle = isEn
+              ? (eventTitleEnglish || event.title)
+              : (eventTitleTamil || event.title);
+
+            const secondaryTitle = isEn
+              ? (eventTitleTamil && eventTitleTamil !== displayTitle ? eventTitleTamil : null)
+              : (eventTitleEnglish && eventTitleEnglish !== displayTitle ? eventTitleEnglish : null);
+
+            const displayDesc = isEn
+              ? (event.description_english || event.description)
+              : (event.description || event.description_english);
+
+            const secondaryDesc = isEn
+              ? (event.description && event.description !== displayDesc ? event.description : null)
+              : (event.description_english && event.description_english !== displayDesc ? event.description_english : null);
+
+            return (
             <div key={event.id} style={{ position: 'relative' }}>
               {/* Timeline Pin Node */}
               <div
@@ -571,7 +593,7 @@ export const Screen12_MemoriesTimeline: React.FC = () => {
                   }}
                 >
                   <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px', flexWrap: 'wrap' }}>
                       {event.approximate_year ? (
                         <>
                           <span
@@ -585,15 +607,21 @@ export const Screen12_MemoriesTimeline: React.FC = () => {
                             {event.approximate_year}
                           </span>
                           <span style={{ fontSize: '19px', fontWeight: 800, color: 'var(--slate-taupe-dark)' }}>
-                            — {event.title}
+                            — {displayTitle}
                           </span>
                         </>
                       ) : (
                         <span style={{ fontSize: '19px', fontWeight: 800, color: 'var(--slate-taupe-dark)' }}>
-                          {event.title}
+                          {displayTitle}
                         </span>
                       )}
                     </div>
+
+                    {secondaryTitle && (
+                      <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '8px', fontStyle: isEn ? 'normal' : 'italic' }}>
+                        {secondaryTitle}
+                      </div>
+                    )}
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontSize: '13px', color: 'var(--slate-gray)' }}>
                       {event.place_name && (
@@ -656,10 +684,17 @@ export const Screen12_MemoriesTimeline: React.FC = () => {
                 </div>
 
                 {/* Description */}
-                {event.description && (
-                  <p style={{ fontSize: '15px', lineHeight: 1.6, color: 'var(--slate-taupe-dark)', marginBottom: '16px' }}>
-                    {event.description}
+                {displayDesc && (
+                  <p style={{ fontSize: '15px', lineHeight: 1.6, color: 'var(--slate-taupe-dark)', marginBottom: secondaryDesc ? '10px' : '16px' }}>
+                    {displayDesc}
                   </p>
+                )}
+
+                {/* Secondary translation note if available */}
+                {secondaryDesc && (
+                  <div style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: '16px', borderLeft: '2px solid var(--border-subtle)', paddingLeft: '10px', fontStyle: 'italic' }}>
+                    {secondaryDesc}
+                  </div>
                 )}
 
                 {/* Transcript Excerpt if linked */}
@@ -724,7 +759,8 @@ export const Screen12_MemoriesTimeline: React.FC = () => {
                 )}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
         </>

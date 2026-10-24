@@ -1253,31 +1253,50 @@ export const Screen6_NarratorProfile: React.FC = () => {
                       marginBottom: '6px',
                     }}
                   >
-                    <span style={{ fontSize: '17px', fontWeight: 800, color: 'var(--slate-taupe-dark)' }}>
-                      {event.approximate_year ? `${event.approximate_year} — ` : ''}
-                      {event.title}
-                    </span>
+                    {(() => {
+                      const isEn = uiLanguage === 'en';
+                      const parenMatch = event.title?.match(/^(.*?)\s*\(([^)]+)\)\s*$/);
+                      const eventTitleTamil = event.title_tamil || (parenMatch ? parenMatch[1].trim() : event.title);
+                      const eventTitleEnglish = event.title_english || (parenMatch ? parenMatch[2].trim() : event.title);
+                      const displayTitle = isEn ? (eventTitleEnglish || event.title) : (eventTitleTamil || event.title);
+                      const displayDesc = isEn ? (event.description_english || event.description) : (event.description || event.description_english);
 
-                    {event.place_name && (
-                      <span
-                        className="badge-pill"
-                        style={{ fontSize: '11px', background: '#FFFFFF', color: 'var(--slate-taupe-dark)' }}
-                      >
-                        📍 {event.place_name}
-                      </span>
-                    )}
+                      return (
+                        <>
+                          <span style={{ fontSize: '17px', fontWeight: 800, color: 'var(--slate-taupe-dark)' }}>
+                            {event.approximate_year ? `${event.approximate_year} — ` : ''}
+                            {displayTitle}
+                          </span>
+
+                          {event.place_name && (
+                            <span
+                              className="badge-pill"
+                              style={{ fontSize: '11px', background: '#FFFFFF', color: 'var(--slate-taupe-dark)' }}
+                            >
+                              📍 {event.place_name}
+                            </span>
+                          )}
+                        </>
+                      );
+                    })()}
                   </div>
 
-                  <p
-                    style={{
-                      fontSize: '14px',
-                      color: 'var(--slate-taupe-dark)',
-                      lineHeight: 1.7,
-                      margin: 0,
-                    }}
-                  >
-                    {event.description}
-                  </p>
+                  {(() => {
+                    const isEn = uiLanguage === 'en';
+                    const displayDesc = isEn ? (event.description_english || event.description) : (event.description || event.description_english);
+                    return displayDesc ? (
+                      <p
+                        style={{
+                          fontSize: '14px',
+                          color: 'var(--slate-taupe-dark)',
+                          lineHeight: 1.7,
+                          margin: 0,
+                        }}
+                      >
+                        {displayDesc}
+                      </p>
+                    ) : null;
+                  })()}
                 </div>
               </div>
             ))}

@@ -154,6 +154,7 @@ export interface LifeEvent {
   title_tamil?: string | null;
   title_english?: string | null;
   description?: string | null;
+  description_english?: string | null;
   approximate_year?: number | null;
   date_precision: 'exact' | 'year' | 'approximate' | 'relative' | 'unknown';
   event_type?: string | null;
