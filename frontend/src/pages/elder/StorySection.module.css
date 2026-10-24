@@ -3,7 +3,7 @@
 .bannerNote { font-weight: 400; font-size: var(--fs-caption); }
 .toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
 .picker { display: inline-flex; gap: 8px; align-items: center; min-width: 0; max-width: 100%; }
-.picker select { font: inherit; min-height: 44px; max-width: 100%; padding: 6px 10px; border: 1.5px solid var(--color-border); border-radius: 12px; background: var(--color-paper); color: var(--color-ink); }
+.picker select { font: inherit; min-height: var(--tap); max-width: 100%; padding: 6px 10px; border: 1.5px solid var(--color-border); border-radius: 12px; background: var(--color-paper); color: var(--color-ink); }
 .draft { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
 .draftTitle { margin: 0; font-family: var(--font-serif); font-size: var(--fs-heading); overflow-wrap: anywhere; }
 .chapter { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
@@ -19,7 +19,7 @@
 .chooserTitle { margin: 0; font-family: var(--font-serif); font-size: 1.15rem; }
 .fieldset { border: 1px solid var(--color-border); border-radius: 12px; margin: 0; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .fieldset legend { font-weight: 600; padding: 0 6px; }
-.check { display: flex; gap: 10px; align-items: flex-start; min-height: 44px; padding: 6px 0; overflow-wrap: anywhere; }
+.check { display: flex; gap: 10px; align-items: flex-start; min-height: var(--tap); padding: 6px 0; overflow-wrap: anywhere; }
 .check input { width: 22px; height: 22px; flex: none; margin-top: 2px; }
 .note { margin: 0; color: var(--color-muted); font-size: var(--fs-caption); }
 .error { margin: 0; color: var(--color-failed); font-size: var(--fs-caption); }

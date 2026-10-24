@@ -39,8 +39,9 @@ function Chapter({ draft, chapter, onSaved }: { draft: StoryDraft; chapter: Stor
 
   return (
     <section className={s.chapter} aria-labelledby={`ch-${chapter.id}`}>
-      <h3 id={`ch-${chapter.id}`} className={s.chapterTitle}>{chapter.title}</h3>
-      {chapter.title_english && <p className={s.sub} lang="en">{chapter.title_english}</p>}
+      <h3 id={`ch-${chapter.id}`} className={s.chapterTitle}>
+        <Bi inline ta={chapter.title} en={chapter.title_english} />
+      </h3>
       {editing ? (
         <>
           <textarea
@@ -196,6 +197,7 @@ export function StorySection({ narratorId }: { narratorId: string }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [choosing, setChoosing] = useState(false);
   const [unavailable, setUnavailable] = useState<string | null>(null);
+  const [reloadFailed, setReloadFailed] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -229,7 +231,7 @@ export function StorySection({ narratorId }: { narratorId: string }) {
   return (
     <div className={s.root}>
       <div className={s.banner} role="note">
-        <Bi inline ta="இது AI உருவாக்கிய வரைவு" en="AI-generated draft, not verified history" />
+        <span>{tr('இது AI உருவாக்கிய வரைவு', 'AI-generated draft, not verified history')}</span>
         <span className={s.bannerNote}>
           {tr('குடும்பம் சரிபார்க்கும் வரை இதை உண்மையான வரலாறாகக் கொள்ள வேண்டாம்.', 'Please check it with the family before treating it as fact.')}
         </span>
@@ -260,13 +262,24 @@ export function StorySection({ narratorId }: { narratorId: string }) {
           onUnavailable={(f) => { setUnavailable(f); setChoosing(false); }}
           onCreated={async (d) => {
             setChoosing(false);
+            setReloadFailed(false);
+            setDrafts((all) => [...(all ?? []).filter((x) => x.id !== d.id), d]);
             setSelectedId(d.id);
-            await load();
-            setSelectedId(d.id);
+            try {
+              const fresh = await getStoryDrafts(narratorId);
+              setDrafts(fresh.some((x) => x.id === d.id) ? fresh : [...fresh, d]);
+            } catch {
+              setReloadFailed(true);
+            }
           }}
         />
       )}
       {unavailable && <NotAvailable feature={unavailable} />}
+      {reloadFailed && (
+        <p role="alert" className={s.error}>
+          {tr('புதிய வரைவு உருவாக்கப்பட்டது, ஆனால் பட்டியலைப் புதுப்பிக்க முடியவில்லை.', 'The draft was created, but the list could not be refreshed.')}
+        </p>
+      )}
 
       {draft ? (
         <article className={s.draft}>

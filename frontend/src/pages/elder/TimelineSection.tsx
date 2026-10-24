@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import type { LifeEvent } from '../../types';
 import { useUi } from '../../context/UiContext';
 import {
@@ -114,7 +114,7 @@ function AddMemory({ narratorId, onDone, onCancel }: { narratorId: string; onDon
     try {
       await createLifeEvent(narratorId, {
         title: title.trim(),
-        title_tamil: title.trim(),
+        ...(/[஀-௿]/.test(title) ? { title_tamil: title.trim() } : { title_english: title.trim() }),
         description: desc.trim() || null,
         place_name: place.trim() || null,
         approximate_year: y ?? null,
@@ -162,11 +162,16 @@ export function TimelineSection({ narratorId }: { narratorId: string }) {
   const [finding, setFinding] = useState(false);
   const [findError, setFindError] = useState('');
 
+  const token = useRef(0);
   const load = useCallback(async () => {
+    const mine = ++token.current;
     try {
-      setEvents(await getTimelineByNarrator(narratorId));
+      const ev = await getTimelineByNarrator(narratorId);
+      if (mine !== token.current) return;
+      setEvents(ev);
       setFailed(false);
     } catch {
+      if (mine !== token.current) return;
       setFailed(true);
     }
   }, [narratorId]);
@@ -224,6 +229,12 @@ export function TimelineSection({ narratorId }: { narratorId: string }) {
           </label>
         )}
       </div>
+      {failed && (
+        <div role="alert" className={s.error}>
+          {tr('காலவரிசையைப் புதுப்பிக்க முடியவில்லை. காட்டப்படுவது பழையதாக இருக்கலாம்.', 'Could not refresh the timeline. What you see may be out of date.')}{' '}
+          <Button variant="text" onClick={load}>{tr('மீண்டும் முயற்சி', 'Try again')}</Button>
+        </div>
+      )}
       {finding && <p role="status" className={s.note}>{tr('எழுத்துப்படிகளில் நினைவுகளைத் தேடுகிறது…', 'Looking through the transcripts…')}</p>}
       {findError && <p role="alert" className={s.error}>{findError}</p>}
 

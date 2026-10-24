@@ -206,4 +206,29 @@ describe('Life story section', () => {
     expect(chs.find((c) => c.id === 'ch-1')!.content).toMatch(/^ஈரோட்டுக்குப்/);
     expect(await within(sec()).findByText('புதிய உரை')).toBeInTheDocument();
   });
+
+  it('English chapter titles only appear in English mode', async () => {
+    renderAt('/elders/n-rajeshwari/story');
+    await screen.findByRole('heading', { name: 'திண்ணையும் கதைகளும்' });
+    expect(screen.queryByText('The verandah and the stories')).toBeNull();
+  });
+
+  it('English chapter titles show in English mode', async () => {
+    localStorage.setItem('nk_ui_lang', 'en');
+    renderAt('/elders/n-rajeshwari/story');
+    expect(await screen.findByText('The verandah and the stories')).toBeInTheDocument();
+  });
+
+  it('a new draft stays selected even if the reload fails', async () => {
+    const user = userEvent.setup();
+    renderAt('/elders/n-rajeshwari/story');
+    await screen.findByRole('heading', { name: 'காவேரிக் கரையில் பிறப்பு' });
+    await user.click(screen.getByRole('button', { name: 'புதிய வரைவை உருவாக்கு' }));
+    const generate = await screen.findByRole('button', { name: 'வரைவை உருவாக்கு' });
+    vi.spyOn(services, 'getStoryDrafts').mockRejectedValueOnce(new Error('x'));
+    await user.click(generate);
+    expect(await screen.findByRole('alert')).toHaveTextContent('பட்டியலைப் புதுப்பிக்க');
+    expect(screen.queryByText('இன்னும் வரைவுகள் இல்லை')).toBeNull();
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
+  });
 });
