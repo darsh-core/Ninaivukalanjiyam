@@ -102,6 +102,21 @@ export const Screen9_RecordingStudio: React.FC = () => {
     setIsPlaying(false);
     setPlaybackCurrentTime(0);
 
+    // Browsers only expose the microphone on HTTPS (or localhost); on plain HTTP
+    // navigator.mediaDevices is undefined and no permission prompt is ever shown.
+    if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+      setUploadError(
+        !window.isSecureContext
+          ? uiLanguage === 'ta'
+            ? 'ஒலிப்பதிவுக்கு இந்தத் தளம் பாதுகாப்பான (https://) முகவரியில் திறக்கப்பட வேண்டும்.'
+            : 'Recording needs a secure connection. Open this site with an https:// address.'
+          : uiLanguage === 'ta'
+          ? 'இந்த உலாவி ஒலிப்பதிவை ஆதரிக்கவில்லை.'
+          : 'This browser does not support audio recording.'
+      );
+      return;
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {

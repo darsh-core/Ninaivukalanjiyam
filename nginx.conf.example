@@ -1,10 +1,14 @@
 # Nginx configuration for NinaivuKalanjiyam on AWS EC2 / Lightsail
 # Place at: /etc/nginx/sites-available/ninaivukalanjiyam
 # Link to:  /etc/nginx/sites-enabled/ninaivukalanjiyam
+#
+# HTTPS is required: browsers block the microphone on plain-HTTP pages.
+# After this site works on port 80, run `sudo ./enable-https.sh <email> [domain]`
+# from the repo root; certbot adds the 443 block and the HTTP->HTTPS redirect here.
 
 server {
     listen 80;
-    server_name your-domain.com www.your-domain.com; # Or your EC2 Public IP
+    server_name your-domain.com www.your-domain.com; # A hostname is needed for HTTPS (e.g. 13-127-18-210.sslip.io)
 
     # Allow up to 50MB for audio uploads and portrait photos
     client_max_body_size 50M;
