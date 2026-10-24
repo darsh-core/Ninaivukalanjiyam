@@ -25,6 +25,8 @@ export interface Narrator {
   event_count?: number;
   last_session_title?: string | null;
   last_session_date?: string | null;
+  // TODO(api): handwritten "next up" note shown on the photo frame
+  photo_frame_note?: string | null;
 }
 
 export interface NarratorDetail extends Narrator {
@@ -101,6 +103,8 @@ export interface SessionQuestion {
   transcript_text_english?: string | null;
   transcript_source?: string | null;
   transcript_reviewed_at?: string | null;
+  // TODO(api): transcription job state
+  transcript_job_status?: TranscriptJobStatus;
 }
 
 export interface Recording {
@@ -144,6 +148,8 @@ export interface Transcript {
   source: 'speech_to_text' | 'manual' | 'corrected';
   status: 'pending' | 'processing' | 'completed' | 'failed';
   reviewed_at?: string | null;
+  // TODO(api): transcription job state
+  job_status?: TranscriptJobStatus;
   created_at: string;
 }
 
@@ -225,3 +231,26 @@ export type ActiveScreen =
   | 'export'
   | 'settings'
   | 'help';
+
+export type TranscriptJobStatus = 'queued' | 'processing' | 'done' | 'needs_review' | 'failed';
+
+export interface ConsentRecord {
+  narrator_id: string;
+  consent_text_version: string;
+  consented_at: string;
+}
+
+export interface TopicProgress {
+  life_stage: string;
+  total: number;
+  answered: number;
+}
+
+export type ArchiveKind = 'audio' | 'transcripts' | 'full';
+
+export interface ArchiveExport {
+  kind: ArchiveKind;
+  status: 'ready';
+  download_url: string;
+  size_bytes: number;
+}

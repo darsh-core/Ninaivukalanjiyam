@@ -11,7 +11,12 @@ import type {
   LifeEvent,
   StoryDraft,
   DashboardOverview,
+  ConsentRecord,
+  TopicProgress,
+  ArchiveKind,
+  ArchiveExport,
 } from '../types';
+import { NotAvailableError } from './errors';
 
 const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:5002/api' : '/api');
 
@@ -473,4 +478,29 @@ export function getDownloadArchiveUrl(
     params.append('timelineEventIds', timelineEventIds.join(','));
   }
   return `${API_BASE}/export/download/${narratorId}?${params.toString()}`;
+}
+
+// Not yet in the backend. TODO(api): replace these stubs with real endpoints.
+export async function getConsent(_narratorId: string): Promise<ConsentRecord | null> {
+  throw new NotAvailableError('getConsent');
+}
+
+export async function recordConsent(_narratorId: string, _consentTextVersion: string): Promise<ConsentRecord> {
+  throw new NotAvailableError('recordConsent');
+}
+
+export async function getTopicProgress(_narratorId: string): Promise<TopicProgress[]> {
+  throw new NotAvailableError('getTopicProgress');
+}
+
+export async function generateStoryDraftFromSources(
+  _narratorId: string,
+  _languageCode: string,
+  _sources: { eventIds: string[]; recordingIds: string[] }
+): Promise<StoryDraft> {
+  throw new NotAvailableError('generateStoryDraftFromSources');
+}
+
+export async function createArchiveExport(_narratorId: string, _kind: ArchiveKind): Promise<ArchiveExport> {
+  throw new NotAvailableError('createArchiveExport');
 }

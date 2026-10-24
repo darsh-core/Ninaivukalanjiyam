@@ -1,0 +1,14 @@
+import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vitest/config'
+
+export default defineConfig({
+  plugins: [react()],
+  css: { modules: { classNameStrategy: 'non-scoped' } },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    css: true,
+    setupFiles: ['src/test/setup.ts'],
+    env: { VITE_USE_MOCK: 'true' },
+  },
+})
