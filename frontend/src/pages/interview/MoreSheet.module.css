@@ -1,0 +1,20 @@
+.backdrop { position: fixed; inset: 0; z-index: 50; background: rgba(59, 42, 32, .4); display: flex; align-items: flex-end; justify-content: center; }
+.sheet { width: 100%; max-width: 640px; max-height: 88vh; overflow-y: auto; background: var(--color-paper); border-radius: 18px 18px 0 0; padding: 16px 16px 28px; display: flex; flex-direction: column; gap: 20px; box-shadow: var(--shadow-card); }
+@media (min-width: 641px) { .backdrop { align-items: center; } .sheet { border-radius: 18px; } }
+.head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.title { font-size: var(--fs-heading); color: var(--color-ink); }
+.section { display: flex; flex-direction: column; gap: 10px; }
+.sub { font-size: var(--fs-body); font-family: var(--font-sans); font-weight: 600; color: var(--color-ink); }
+.calm { margin: 0; color: var(--color-muted); }
+.list, .qlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.item { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; border: 1px solid var(--color-border-soft); border-radius: 14px; }
+.item > :first-child { flex: 1 1 200px; min-width: 0; }
+.field { display: flex; flex-direction: column; gap: 4px; font-size: var(--fs-caption); color: var(--color-muted); }
+.field textarea { width: 100%; font-size: var(--fs-body); padding: 10px 12px; border: 1.5px solid var(--color-border); border-radius: 12px; background: var(--color-paper); color: var(--color-ink); resize: vertical; }
+.qbtn { width: 100%; min-height: var(--tap); display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; text-align: left; padding: 10px 14px; border: 1px solid var(--color-border-soft); border-radius: 14px; background: var(--color-paper); color: var(--color-ink); font: inherit; }
+.qbtn:hover:not(:disabled) { border-color: var(--color-terracotta); }
+.current { border-color: var(--color-terracotta); border-width: 2px; }
+.qnum { color: var(--color-muted); }
+.qtext { min-width: 0; }
+.qstatus { grid-column: 2; font-size: var(--fs-caption); color: var(--color-muted); }
+.end { display: flex; flex-direction: column; gap: 12px; border-top: 1px solid var(--color-border-soft); padding-top: 16px; }

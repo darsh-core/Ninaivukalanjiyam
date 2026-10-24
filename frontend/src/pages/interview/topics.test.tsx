@@ -72,7 +72,7 @@ describe('Topic picker and consent', () => {
     const agree = await screen.findByRole('button', { name: /நான் ஒப்புக்கொள்கிறேன்/ });
     expect(services.recordConsent).not.toHaveBeenCalled();
     await user.click(agree);
-    expect(await screen.findByRole('heading', { level: 1, name: 'Interview' })).toBeInTheDocument();
+    expect(await screen.findByText(/^கேள்வி \d+ \/ \d+/)).toBeInTheDocument();
     expect(services.recordConsent).toHaveBeenCalledWith('n-shanmugam', 'v1');
     const sessions = await services.getAllSessions('n-shanmugam');
     expect(sessions).toHaveLength(2);
@@ -87,7 +87,7 @@ describe('Topic picker and consent', () => {
     const before = await services.getSessionById('s-r2');
     renderAt('/elders/n-rajeshwari/topics');
     await user.click(await screen.findByRole('button', { name: /குடும்பம்/ }));
-    expect(await screen.findByRole('heading', { level: 1, name: 'Interview' })).toBeInTheDocument();
+    expect(await screen.findByText(/^கேள்வி \d+ \/ \d+/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /நான் ஒப்புக்கொள்கிறேன்/ })).not.toBeInTheDocument();
     const sessions = await services.getAllSessions('n-rajeshwari');
     expect(sessions).toHaveLength(2);
@@ -103,7 +103,7 @@ describe('Topic picker and consent', () => {
     const agree = await screen.findByRole('button', { name: /நான் ஒப்புக்கொள்கிறேன்/ });
     expect(screen.getByText(/குரல் பதிவு/)).toBeInTheDocument();
     await user.click(agree);
-    expect(await screen.findByRole('heading', { level: 1, name: 'Interview' })).toBeInTheDocument();
+    expect(await screen.findByText(/^கேள்வி \d+ \/ \d+/)).toBeInTheDocument();
     await waitFor(() => expect(screen.getByText('ஒப்புதல் பதிவு இன்னும் இல்லை')).toBeInTheDocument());
   });
   it('re-picking a topic adds nothing and never adds answered questions', async () => {
@@ -112,7 +112,7 @@ describe('Topic picker and consent', () => {
     const before = await count();
     renderAt('/elders/n-rajeshwari/topics');
     await user.click(await screen.findByRole('button', { name: /குடும்பம்/ }));
-    await screen.findByRole('heading', { level: 1, name: 'Interview' });
+    await screen.findByText(/^கேள்வி \d+ \/ \d+/);
     const afterFirst = await count();
     expect(afterFirst).toBeGreaterThan(before);
     const r2 = await services.getSessionById('s-r2');
