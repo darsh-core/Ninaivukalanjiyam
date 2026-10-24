@@ -6,13 +6,17 @@ import type {
 
 export const DEMO_USER = { id: 'u-demo', fullName: 'அன்பரசன்', email: 'demo@family.test', role: 'assistant' as const };
 
-export const STAGE_CHILDHOOD = 'குழந்தைப் பருவம் / Childhood';
-export const STAGE_SCHOOL = 'பள்ளி நாட்கள் / School';
-export const STAGE_WORK = 'வேலை / Work';
-export const STAGE_FAMILY = 'குடும்பம் / Family';
+export const STAGE_CHILDHOOD = 'Early Years';
+export const STAGE_SCHOOL = 'Education';
+export const STAGE_WORK = 'Adult';
+export const STAGE_FAMILY = 'Family';
+// Backend shape: category is an English topic name, life_stage an English stage. Tamil labels come from a UI label map.
+const CATEGORY: Record<string, string> = {
+  'Early Years': 'Childhood', Education: 'School days', Adult: 'Career', Family: 'Parents and siblings',
+};
 
 const bq = (id: string, stage: string, order: number, ta: string, en: string): BankQuestion => ({
-  id, category: stage, life_stage: stage, question_tamil: ta, question_english: en, display_order: order, is_enabled: true,
+  id, category: CATEGORY[stage], life_stage: stage, question_tamil: ta, question_english: en, display_order: order, is_enabled: true,
 });
 
 export const seedBank: BankQuestion[] = [
