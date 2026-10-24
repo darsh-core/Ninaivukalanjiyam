@@ -85,6 +85,6 @@ describe('Elder hub and interviews', () => {
 
   it('renders other sections by route', async () => {
     renderAt('/elders/n-rajeshwari/timeline');
-    expect(await screen.findByText('Timeline section')).toBeInTheDocument();
+    expect(await screen.findByText('ஈரோட்டில் பிறப்பு')).toBeInTheDocument();
   });
 });
