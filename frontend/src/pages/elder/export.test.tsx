@@ -113,9 +113,9 @@ describe('Podcast', () => {
     expect(services.synthesizeSpeech).toHaveBeenCalledWith(first);
     expect(spoken[0].text).toBe(first);
     expect(spoken[0].lang).toBe('ta-IN');
-    expect(playSpy).not.toHaveBeenCalled();
+    expect(playSpy).toHaveBeenCalledTimes(1); // silent primer inside the click
     act(() => spoken[0].onend?.());
-    await waitFor(() => expect(playSpy).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(playSpy).toHaveBeenCalledTimes(2));
   });
 
   it('advances to the next track when the answer ends, and stops at the end', async () => {
@@ -176,13 +176,61 @@ describe('Podcast', () => {
     expect(await screen.findByRole('list', { name: 'பகுதிகள்' })).toBeInTheDocument();
   });
 
-  it('scrolls the podcast into view for #podcast', async () => {
+  it.each([[false, 'smooth'], [true, 'auto']])('scrolls for #podcast (reduced motion %s -> %s)', async (reduce, behavior) => {
     const scroll = vi.fn();
     Element.prototype.scrollIntoView = scroll;
+    window.matchMedia = vi.fn().mockReturnValue({ matches: reduce }) as unknown as typeof window.matchMedia;
     renderAt('/elders/n-rajeshwari/export#podcast');
     await trackButtons();
-    await waitFor(() => expect(scroll).toHaveBeenCalled());
+    await waitFor(() => expect(scroll).toHaveBeenCalledWith(expect.objectContaining({ behavior })));
     delete (Element.prototype as unknown as Record<string, unknown>).scrollIntoView;
+    delete (window as unknown as Record<string, unknown>).matchMedia;
+  });
+
+  it('pausing while play() is pending shows no error and Play resumes', async () => {
+    renderAt('/elders/n-rajeshwari/export');
+    await trackButtons();
+    fireEvent.click(screen.getByRole('button', { name: /இயக்கு/ }));
+    await waitFor(() => expect(synth.speak).toHaveBeenCalledTimes(1));
+    let rejectPlay: (e: unknown) => void = () => {};
+    playSpy.mockImplementationOnce(() => new Promise((_, rej) => { rejectPlay = rej; }));
+    act(() => spoken[0].onend?.());
+    await waitFor(() => expect(playSpy).toHaveBeenCalledTimes(2));
+    fireEvent.click(screen.getByRole('button', { name: /இடைநிறுத்து/ }));
+    await act(async () => rejectPlay(Object.assign(new Error('x'), { name: 'AbortError' })));
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(screen.getByText('இடைநிறுத்தம்')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /இயக்கு/ }));
+    await waitFor(() => expect(playSpy).toHaveBeenCalledTimes(3));
+    expect(synth.speak).toHaveBeenCalledTimes(1);
+  });
+
+  it('a blocked answer play() asks to tap Play, and Play continues the answer, not the question', async () => {
+    renderAt('/elders/n-rajeshwari/export');
+    await trackButtons();
+    fireEvent.click(screen.getByRole('button', { name: /இயக்கு/ }));
+    await waitFor(() => expect(synth.speak).toHaveBeenCalledTimes(1));
+    playSpy.mockImplementationOnce(() => Promise.reject(Object.assign(new Error('blocked'), { name: 'NotAllowedError' })));
+    act(() => spoken[0].onend?.());
+    expect(await screen.findByRole('alert')).toHaveTextContent('தொடர');
+    fireEvent.click(screen.getByRole('button', { name: /இயக்கு/ }));
+    await waitFor(() => expect(playSpy).toHaveBeenCalledTimes(3));
+    expect(synth.speak).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('resumes paused speech after cancel when moving to another track', async () => {
+    renderAt('/elders/n-rajeshwari/export');
+    await trackButtons();
+    fireEvent.click(screen.getByRole('button', { name: /இயக்கு/ }));
+    await waitFor(() => expect(synth.speak).toHaveBeenCalledTimes(1));
+    fireEvent.click(screen.getByRole('button', { name: /இடைநிறுத்து/ }));
+    expect(synth.pause).toHaveBeenCalled();
+    synth.resume.mockClear();
+    fireEvent.click(screen.getByRole('button', { name: /அடுத்தது/ }));
+    await waitFor(() => expect(synth.speak).toHaveBeenCalledTimes(2));
+    expect(synth.resume).toHaveBeenCalled();
+    expect(synth.cancel.mock.invocationCallOrder.at(-1)!).toBeLessThan(synth.resume.mock.invocationCallOrder.at(-1)!);
   });
 });
 

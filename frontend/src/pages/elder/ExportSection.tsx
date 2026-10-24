@@ -129,7 +129,10 @@ export function ExportSection({ narratorId }: { narratorId: string }) {
 
   const ready = tracks !== null;
   useEffect(() => {
-    if (ready && hash === '#podcast') podcastRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+    if (ready && hash === '#podcast') {
+      const reduce = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      podcastRef.current?.scrollIntoView?.({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    }
   }, [ready, hash]);
 
   if (failed) {

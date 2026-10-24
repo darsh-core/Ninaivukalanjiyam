@@ -17,6 +17,10 @@ export interface Track {
 type Phase = 'idle' | 'question' | 'answer';
 type Mode = 'none' | 'audio' | 'speech';
 
+// Tiny silent clip used to unlock the audio element inside the Play click (iOS/Safari autoplay rules).
+const SILENT = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+const isAbort = (e: unknown) => (e as { name?: string } | null)?.name === 'AbortError';
+
 const fmt = (secs: number) => `${Math.floor(secs / 60)}:${String(Math.floor(secs % 60)).padStart(2, '0')}`;
 
 function speechAvailable() {
@@ -59,7 +63,11 @@ export function PodcastPlayer({ tracks }: { tracks: Track[] }) {
       a.onerror = null;
       a.pause();
     }
-    if (speechAvailable()) window.speechSynthesis.cancel();
+    if (speechAvailable()) {
+      window.speechSynthesis.cancel();
+      // Chrome can stay silent for the next utterance if speech was left paused.
+      window.speechSynthesis.resume?.();
+    }
   }, []);
 
   const finish = useCallback(() => {
@@ -68,13 +76,19 @@ export function PodcastPlayer({ tracks }: { tracks: Track[] }) {
   }, [halt]);
 
   const startTrack = useCallback(
-    (i: number) => {
+    (i: number, fromGesture = true) => {
       const list = tracksRef.current;
       if (i < 0 || i >= list.length) {
         finish();
         return;
       }
       halt();
+      if (fromGesture) {
+        const a = getAudio();
+        a.src = SILENT;
+        Promise.resolve(a.play()).catch(() => {});
+        a.pause();
+      }
       const mine = token.current;
       const track = list[i];
       indexRef.current = i;
@@ -92,16 +106,17 @@ export function PodcastPlayer({ tracks }: { tracks: Track[] }) {
           if (mine === token.current) next();
         };
         a.src = url;
-        Promise.resolve(a.play()).catch(() => {
-          if (mine !== token.current) return;
+        Promise.resolve(a.play()).catch((e) => {
+          if (mine !== token.current || isAbort(e)) return;
+          // Blocked (autoplay rules): stay on this phase so Play continues from here.
           setProblem(true);
-          finish();
+          setPlaying(false);
         });
       };
 
       const playAnswer = () => {
         phase.current = 'answer';
-        playUrl(getAudioUrl(track.storageKey), () => startTrack(i + 1));
+        playUrl(getAudioUrl(track.storageKey), () => startTrack(i + 1, false));
       };
 
       const browserSpeech = () => {
@@ -151,10 +166,11 @@ export function PodcastPlayer({ tracks }: { tracks: Track[] }) {
       return;
     }
     setPlaying(true);
+    setProblem(false);
     if (mode.current === 'audio') {
       const mine = token.current;
-      Promise.resolve(audioRef.current?.play()).catch(() => {
-        if (mine === token.current) {
+      Promise.resolve(audioRef.current?.play()).catch((e) => {
+        if (mine === token.current && !isAbort(e)) {
           setProblem(true);
           setPlaying(false);
         }
@@ -191,7 +207,7 @@ export function PodcastPlayer({ tracks }: { tracks: Track[] }) {
       </div>
       {problem && (
         <p role="alert" className={s.problem}>
-          {tr('ஒலியை இயக்க முடியவில்லை. இயக்கு பொத்தானை மீண்டும் தட்டவும்.', 'Could not start the audio. Tap Play again.')}
+          {tr('தொடர இயக்கு பொத்தானைத் தட்டவும்.', 'Tap Play to continue.')}
         </p>
       )}
       <ol className={s.list} aria-label={tr('பகுதிகள்', 'Tracks')}>
