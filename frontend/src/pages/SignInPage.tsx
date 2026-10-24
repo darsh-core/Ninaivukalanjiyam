@@ -1,16 +1,17 @@
 import { useState, type FormEvent } from 'react';
-import { Navigate, useLocation, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useUi } from '../context/UiContext';
 import { Button } from '../ui/Button/Button';
 import { Card } from '../ui/Card/Card';
 import { Field } from '../ui/Field/Field';
 import { PageHeader } from '../ui/PageHeader/PageHeader';
+import { Tagline } from './Tagline';
 import s from './SignInPage.module.css';
 
 export function SignInPage() {
   const { login, register, isAuthenticated } = useAuth();
-  const { tr } = useUi();
+  const { lang, tr } = useUi();
   const location = useLocation();
   const [params] = useSearchParams();
   const [creating, setCreating] = useState(params.get('mode') === 'register');
@@ -39,7 +40,29 @@ export function SignInPage() {
   };
 
   return (
-    <main className={s.page}>
+    <div className={s.split}>
+      <aside className={s.intro}>
+        <Link to="/welcome" className={s.introBrand}>← நினைவுக் களஞ்சியம்</Link>
+        <div className={s.introBody}>
+          <p className={s.introTagline}><Tagline /></p>
+          {lang === 'en' && <p className={s.introTaglineEn}>Let’s preserve the voices and memories of our family elders.</p>}
+          <p className={s.introText}>
+            {tr(
+              'ஒவ்வொரு பெரியவரிடமும் ஒரு புத்தகம் அளவு கதைகள் இருக்கின்றன. அவர்களின் குரல், சிரிப்பு, பழமொழிகள் — பேரக்குழந்தைகள் என்றும் கேட்கும்படி பாதுகாப்போம்.',
+              'Every elder carries a book of stories. Their voice, their laugh, their sayings — let’s keep them for the grandchildren to hear, always.',
+            )}
+          </p>
+          <ul className={s.introPoints}>
+            <li>{tr('🎙️ ஒரு கேள்வி, ஒரு பெரிய பொத்தான் — பதிவு எளிது', '🎙️ One question, one big button — recording is easy')}</li>
+            <li>{tr('🔊 மூலக் குரல் அப்படியே பாதுகாக்கப்படும்', '🔊 The original voice is kept exactly as spoken')}</li>
+            <li>{tr('🔒 உங்கள் குடும்பத்துக்கு மட்டும்', '🔒 Private to your family')}</li>
+          </ul>
+          <p className={s.introCall}>
+            {tr('இன்றே தொடங்குங்கள் — முதல் கேள்வி காத்திருக்கிறது. →', 'Start today — the first question is waiting. →')}
+          </p>
+        </div>
+      </aside>
+      <main className={s.page}>
       <Card as="section" className={s.card}>
         <PageHeader title={creating ? tr('குடும்பக் கணக்கு உருவாக்கு', 'Create family account') : tr('உள்நுழை', 'Sign in')} />
         <form onSubmit={submit} className={s.form}>
@@ -69,6 +92,7 @@ export function SignInPage() {
           {creating ? tr('ஏற்கனவே கணக்கு உள்ளதா? உள்நுழை', 'Have an account? Sign in') : tr('புதிய கணக்கு உருவாக்கு', 'Create a new account')}
         </Button>
       </Card>
-    </main>
+      </main>
+    </div>
   );
 }
