@@ -40,7 +40,7 @@ describe('Elder hub and interviews', () => {
     renderAt('/elders/n-rajeshwari/interviews');
     expect(await screen.findByRole('heading', { level: 1, name: 'ராஜேஸ்வரி பாட்டி' })).toBeInTheDocument();
     const cont = screen.getByRole('link', { name: /நேர்காணலைத் தொடர்/ });
-    expect(cont).toHaveAttribute('href', '/interview/s-r2');
+    expect(cont).toHaveAttribute('href', '/elders/n-rajeshwari/consent?next=%2Finterview%2Fs-r2');
     expect(await screen.findAllByRole('heading', { level: 2 })).toHaveLength(2);
     expect(screen.getByText('முடிந்தது')).toBeInTheDocument();
     expect(screen.getByText('நடைபெறுகிறது')).toBeInTheDocument();

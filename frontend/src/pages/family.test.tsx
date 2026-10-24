@@ -49,7 +49,7 @@ describe('Family home', () => {
     expect(screen.getByText('சண்முகம் தாத்தா')).toBeInTheDocument();
     const cont = screen.getByRole('link', { name: /நேர்காணலைத் தொடர்/ });
     expect(cont).toHaveTextContent('ராஜேஸ்வரி');
-    expect(cont).toHaveAttribute('href', '/interview/s-r2');
+    expect(cont).toHaveAttribute('href', '/elders/n-rajeshwari/consent?next=%2Finterview%2Fs-r2');
     expect(screen.getByRole('link', { name: /குடும்பப் பெரியவரைச் சேர்/ })).toHaveAttribute('href', '/elders/new');
   });
 

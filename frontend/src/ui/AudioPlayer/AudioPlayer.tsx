@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { Play, Pause, Download } from 'lucide-react';
 import { getAudioUrl } from '../../services';
+import { useUi } from '../../context/UiContext';
 import s from './AudioPlayer.module.css';
 
 interface AudioPlayerProps {
@@ -19,6 +20,7 @@ const formatTime = (secs: number) => {
 };
 
 export function AudioPlayer({ storageKey, durationSeconds = 0, title, showDownload = true }: AudioPlayerProps) {
+  const { tr } = useUi();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -71,7 +73,7 @@ export function AudioPlayer({ storageKey, durationSeconds = 0, title, showDownlo
   return (
     <div className={s.player}>
       <audio ref={audioRef} src={audioSrc} preload="metadata" />
-      <button type="button" className={s.play} onClick={togglePlay} aria-label={isPlaying ? 'Pause' : 'Play'}>
+      <button type="button" className={s.play} onClick={togglePlay} aria-label={isPlaying ? tr('நிறுத்து', 'Pause') : tr('இயக்கு', 'Play')}>
         {isPlaying ? <Pause size={20} /> : <Play size={20} />}
       </button>
       <div className={s.middle}>
@@ -84,18 +86,18 @@ export function AudioPlayer({ storageKey, durationSeconds = 0, title, showDownlo
           step={0.1}
           value={currentTime}
           onChange={handleSeek}
-          aria-label="Seek"
+          aria-label={tr('நகர்த்து', 'Seek')}
         />
         <div className={s.times}>
           <span>{formatTime(currentTime)}</span>
           <span>{formatTime(duration)}</span>
         </div>
       </div>
-      <button type="button" className={s.speed} onClick={changeSpeed} aria-label="Playback speed">
+      <button type="button" className={s.speed} onClick={changeSpeed} aria-label={tr('வேகம்', 'Playback speed')}>
         {playbackRate}x
       </button>
       {showDownload && (
-        <a className={s.download} href={audioSrc} download={storageKey.split('/').pop() || 'recording.webm'} aria-label="Download audio">
+        <a className={s.download} href={audioSrc} download={storageKey.split('/').pop() || 'recording.webm'} aria-label={tr('ஒலியைப் பதிவிறக்கு', 'Download audio')}>
           <Download size={18} />
         </a>
       )}

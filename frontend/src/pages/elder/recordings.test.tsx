@@ -48,6 +48,13 @@ describe('Recordings section', () => {
     expect(h.map((x) => x.textContent)).toEqual(['வேலை நாட்கள்', 'சிறுவயது நினைவுகள்']);
   });
 
+  it('does not show English question text inside the audio player in Tamil mode', async () => {
+    const { container } = renderAt('/elders/n-rajeshwari/recordings');
+    await screen.findAllByRole('heading', { level: 2 });
+    expect(container.querySelector('audio')).not.toBeNull();
+    expect(container.textContent).not.toMatch(/[A-Za-z]{4,} [A-Za-z]{3,} [A-Za-z]{3,}/);
+  });
+
   it('renders every seeded transcript status label', async () => {
     renderAt('/elders/n-rajeshwari/recordings');
     await screen.findAllByRole('heading', { level: 2 });

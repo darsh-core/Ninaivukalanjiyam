@@ -92,7 +92,7 @@ describe('Interview question screen', () => {
     const text = await questionText(1);
     renderAt('/interview/s-r2?q=1');
     expect(await screen.findByText(text)).toBeInTheDocument();
-    expect(screen.getByRole('slider', { name: 'Seek' })).toBeInTheDocument();
+    expect(screen.getByRole('slider', { name: 'நகர்த்து' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /இன்னொரு பதிவு/ })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /பதிவைத் தொடங்கு/ })).not.toBeInTheDocument();
     expect(loc()).toBe('/interview/s-r2?q=1');
@@ -106,7 +106,7 @@ describe('Interview question screen', () => {
     await waitFor(() => expect(services.uploadRecordingBlob).toHaveBeenCalledTimes(1));
     expect(vi.mocked(services.uploadRecordingBlob).mock.calls[0][0]).toBe('q-r2-3');
     expect(await screen.findByRole('button', { name: /இன்னொரு பதிவு/ })).toBeInTheDocument();
-    expect(screen.getByRole('slider', { name: 'Seek' })).toBeInTheDocument();
+    expect(screen.getByRole('slider', { name: 'நகர்த்து' })).toBeInTheDocument();
     expect(screen.getAllByText('சேமிக்கப்பட்டது').length).toBeGreaterThan(0);
     expect(loc()).toBe('/interview/s-r2?q=3');
   });

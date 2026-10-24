@@ -52,7 +52,7 @@ export function InterviewsSection({ narratorId, sessions }: { narratorId: string
                 )}
                 {when && ` · ${tr('கடைசியாக', 'Last activity')}: ${when}`}
               </p>
-              <Link to={`/interview/${x.id}`} className={open ? s.cont : s.open}>
+              <Link to={`/elders/${narratorId}/consent?next=${encodeURIComponent(`/interview/${x.id}`)}`} className={open ? s.cont : s.open}>
                 {open ? tr('தொடர்', 'Continue') : tr('திற', 'Open')}
               </Link>
             </Card>

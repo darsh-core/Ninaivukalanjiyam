@@ -172,6 +172,23 @@ describe('Topic picker and consent', () => {
     await waitFor(() => expect(screen.getByTestId('loc').textContent).toBe('/elders/n-shanmugam/interviews'));
   });
 
+  it('greets the elder by preferred name', async () => {
+    renderAt('/elders/n-shanmugam/consent?next=%2Finterview%2Fs-m1');
+    expect(await screen.findByRole('heading', { level: 1, name: 'வணக்கம் தாத்தா' })).toBeInTheDocument();
+  });
+
+  it('Continue interview from the elder page still goes through consent', async () => {
+    const user = userEvent.setup();
+    renderAt('/elders/n-shanmugam/topics');
+    await user.click(await screen.findByRole('button', { name: /குழந்தைப் பருவம்/ }));
+    await user.click(await screen.findByRole('button', { name: /இப்போது வேண்டாம்/ }));
+    await waitFor(() => expect(screen.getByTestId('loc').textContent).toBe('/elders/n-shanmugam/interviews'));
+    await user.click(await screen.findByRole('link', { name: /நேர்காணலைத் தொடர்/ }));
+    expect(await screen.findByRole('button', { name: /நான் ஒப்புக்கொள்கிறேன்/ })).toBeInTheDocument();
+    expect(screen.getByTestId('loc').textContent).toMatch(/^\/elders\/n-shanmugam\/consent\?next=/);
+    expect(screen.queryByText(/^கேள்வி \d+ \/ \d+/)).not.toBeInTheDocument();
+  });
+
   it('Not now goes back to the elder page', async () => {
     const user = userEvent.setup();
     renderAt('/elders/n-shanmugam/consent?next=%2Finterview%2Fs-m1');

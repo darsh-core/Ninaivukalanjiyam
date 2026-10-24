@@ -110,11 +110,12 @@ function Consent({ id }: { id: string }) {
   }
   if (!ready || !narrator) return <div className={s.loading} aria-busy="true" aria-label={tr('ஏற்றுகிறது', 'Loading')} />;
   if (already) return <Navigate to={next} replace />;
+  const address = narrator.preferred_name || narratorName(narrator);
 
   return (
     <div className={s.page}>
       <Card className={s.card}>
-        <h1 className={s.hello}>{tr(`வணக்கம் ${narratorName(narrator)}`, `Hello ${narratorName(narrator)}`)}</h1>
+        <h1 className={s.hello}>{tr(`வணக்கம் ${address}`, `Hello ${address}`)}</h1>
         <p className={s.text}>{TEXT_TA}</p>
         {lang === 'en' && <p className={s.help}>{TEXT_EN}</p>}
         <Button variant="secondary" size="lg" onClick={speak}>🔊 {tr('கேள்', 'Listen')}</Button>

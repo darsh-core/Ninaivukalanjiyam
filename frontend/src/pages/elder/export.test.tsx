@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, waitFor, act, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
+const flags = vi.hoisted(() => ({ isMock: true }));
+
 vi.mock('../../services', async () => {
   const mock = await import('../../services/mockApi');
   return {
@@ -9,7 +11,9 @@ vi.mock('../../services', async () => {
     synthesizeSpeech: vi.fn(mock.synthesizeSpeech),
     createArchiveExport: vi.fn(mock.createArchiveExport),
     getAllRecordings: vi.fn(mock.getAllRecordings),
-    IS_MOCK: true,
+    get IS_MOCK() {
+      return flags.isMock;
+    },
   };
 });
 
@@ -235,7 +239,18 @@ describe('Podcast', () => {
 });
 
 describe('Archive and PDF', () => {
+  it('in mock mode the ready state shows a demo note instead of a download link', async () => {
+    renderAt('/elders/n-rajeshwari/export');
+    await trackButtons();
+    const card = screen.getByRole('heading', { name: 'முழு காப்பகம்' }).closest('li') as HTMLElement;
+    fireEvent.click(card.querySelector('button') as HTMLButtonElement);
+    expect(await screen.findByText('மாதிரி: கோப்பு இல்லை')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'பதிவிறக்கு' })).not.toBeInTheDocument();
+    expect(card).toHaveTextContent('1.2 MB');
+  });
+
   it('Everything creates a full archive and shows a download link with size', async () => {
+    flags.isMock = false;
     renderAt('/elders/n-rajeshwari/export');
     await trackButtons();
     const card = screen.getByRole('heading', { name: 'முழு காப்பகம்' }).closest('li') as HTMLElement;
@@ -244,6 +259,7 @@ describe('Archive and PDF', () => {
     expect(services.createArchiveExport).toHaveBeenCalledWith('n-rajeshwari', 'full');
     expect(link).toHaveAttribute('href', '#mock-download');
     expect(card).toHaveTextContent('1.2 MB');
+    flags.isMock = true;
   });
 
   it('NotAvailableError shows NotAvailable while the podcast still works', async () => {

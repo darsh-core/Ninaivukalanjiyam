@@ -110,7 +110,7 @@ function RecordingCard({ rec, onChanged }: { rec: Recording; onChanged: () => Pr
         {tr(`எடுப்பு ${rec.version_number}`, `Take ${rec.version_number}`)}
         {fmt(rec.created_at) && ` · ${fmt(rec.created_at)}`}
       </p>
-      <AudioPlayer storageKey={rec.storage_key} durationSeconds={rec.duration_seconds} title={rec.question_english ?? rec.question_tamil} />
+      <AudioPlayer storageKey={rec.storage_key} durationSeconds={rec.duration_seconds} />
       <div className={s.statusRow}>
         <span className={s.statusLabel}>{tr('எழுத்துப் பிரதி', 'Transcript')}</span>
         <StatusLabel status={statusOf(rec)} />

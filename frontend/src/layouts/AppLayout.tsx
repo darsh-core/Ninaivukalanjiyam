@@ -48,9 +48,6 @@ export function AppLayout() {
             </button>
             {open && (
               <div className={s.pop} role="menu">
-                <a role="menuitem" href="#help" className={s.item} onClick={() => setOpen(false)}>
-                  {tr('உதவி', 'Help')}
-                </a>
                 <button
                   type="button"
                   role="menuitem"

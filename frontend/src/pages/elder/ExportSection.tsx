@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useUi } from '../../context/UiContext';
-import { createArchiveExport, getAllRecordings, getNarratorById } from '../../services';
+import { IS_MOCK, createArchiveExport, getAllRecordings, getNarratorById } from '../../services';
 import { NotAvailableError } from '../../services/errors';
 import type { ArchiveExport, ArchiveKind, Recording } from '../../types';
 import { narratorName } from '../../utils/narrator';
@@ -64,9 +64,13 @@ function ArchiveCard({ narratorId, kind, titleTa, titleEn, bodyTa, bodyEn }: {
           <p className={s.readyText}>
             {tr('தயார்', 'Ready')} · {formatSize(state.result.size_bytes)}
           </p>
-          <a className={s.download} href={state.result.download_url} download>
-            {tr('பதிவிறக்கு', 'Download')}
-          </a>
+          {IS_MOCK ? (
+            <p className={s.readyText}>{tr('மாதிரி: கோப்பு இல்லை', 'Demo: no file to download')}</p>
+          ) : (
+            <a className={s.download} href={state.result.download_url} download>
+              {tr('பதிவிறக்கு', 'Download')}
+            </a>
+          )}
         </div>
       ) : (
         <>

@@ -72,7 +72,7 @@ export function FamilyHomePage() {
       {narrators && (
         <>
           {resumable && resumeNarrator && (
-            <Link to={`/interview/${resumable.id}`} className={s.continue}>
+            <Link to={`/elders/${resumeNarrator.id}/consent?next=${encodeURIComponent(`/interview/${resumable.id}`)}`} className={s.continue}>
               ▶ {tr('நேர்காணலைத் தொடர்', 'Continue interview')}: {narratorName(resumeNarrator)} — {resumable.title}
             </Link>
           )}

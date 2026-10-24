@@ -120,7 +120,7 @@ function ElderHub({ id, section }: { id: string; section: Section }) {
       </header>
 
       <div className={s.actions}>
-        <Link to={unfinished ? `/interview/${unfinished.id}` : `${base}/topics`} className={s.primary}>
+        <Link to={unfinished ? `${base}/consent?next=${encodeURIComponent(`/interview/${unfinished.id}`)}` : `${base}/topics`} className={s.primary}>
           {unfinished ? tr('நேர்காணலைத் தொடர்', 'Continue interview') : tr('நேர்காணலைத் தொடங்கு', 'Start interview')}
         </Link>
         <Link to={`${base}/export#podcast`} className={s.secondary}>🎧 {tr('கேள்', 'Listen')}</Link>
