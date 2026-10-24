@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { Navigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useUi } from '../context/UiContext';
 import { Button } from '../ui/Button/Button';
@@ -11,7 +11,6 @@ import s from './SignInPage.module.css';
 export function SignInPage() {
   const { login, register, isAuthenticated } = useAuth();
   const { tr } = useUi();
-  const navigate = useNavigate();
   const location = useLocation();
   const [params] = useSearchParams();
   const [creating, setCreating] = useState(params.get('mode') === 'register');

@@ -218,21 +218,6 @@ export interface DashboardOverview {
   }>;
 }
 
-export type ActiveScreen =
-  | 'welcome'
-  | 'signin'
-  | 'dashboard'
-  | 'narrators'
-  | 'narrator_profile'
-  | 'session_setup'
-  | 'interview_question'
-  | 'recording_studio'
-  | 'recordings'
-  | 'timeline'
-  | 'story_builder'
-  | 'export'
-  | 'settings'
-  | 'help';
 
 export type TranscriptJobStatus = 'queued' | 'processing' | 'done' | 'needs_review' | 'failed';
 
