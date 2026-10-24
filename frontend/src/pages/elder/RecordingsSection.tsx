@@ -105,7 +105,7 @@ function RecordingCard({ rec, onChanged }: { rec: Recording; onChanged: () => Pr
 
   return (
     <Card className={s.card}>
-      <Bi as="question" ta={rec.question_tamil ?? ''} en={rec.question_english} />
+      <Bi as="heading" ta={rec.question_tamil ?? ''} en={rec.question_english} />
       <p className={s.meta}>
         {tr(`எடுப்பு ${rec.version_number}`, `Take ${rec.version_number}`)}
         {fmt(rec.created_at) && ` · ${fmt(rec.created_at)}`}

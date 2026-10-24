@@ -1,5 +1,5 @@
 .shell { min-height: 100vh; }
-.header { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 16px; background: var(--color-paper); border-bottom: 1px solid var(--color-border-soft); }
+.header { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 16px; background: var(--color-paper); border-bottom: 1px solid var(--color-border-soft); }
 .brand { font-family: var(--font-serif); font-size: var(--fs-heading); font-weight: 700; color: var(--color-terracotta); text-decoration: none; min-height: var(--tap); display: inline-flex; align-items: center; }
 .right { display: flex; align-items: center; gap: 4px; }
 .badge { font-size: var(--fs-caption); background: var(--color-review-bg); color: var(--color-review); border-radius: var(--radius-pill); padding: 2px 10px; white-space: nowrap; }
