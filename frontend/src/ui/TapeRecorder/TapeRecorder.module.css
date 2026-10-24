@@ -1,0 +1,20 @@
+.recorder { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; max-width: 520px; margin: 0 auto; }
+.window { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; padding: 18px 20px; background: #2E1F17; border-radius: var(--radius-card); border: 3px solid var(--color-ink); }
+.reel { width: 56px; height: 56px; flex: none; border-radius: 50%; border: 6px solid var(--color-turmeric); background: radial-gradient(circle, #2E1F17 0 14px, transparent 15px), conic-gradient(var(--color-parchment) 0 12%, transparent 12% 33%, var(--color-parchment) 33% 45%, transparent 45% 66%, var(--color-parchment) 66% 78%, transparent 78%); }
+.meter { display: flex; align-items: flex-end; justify-content: center; gap: 5px; height: 44px; flex: 1; }
+.bar { width: 8px; height: 6px; border-radius: 3px; background: var(--color-turmeric); }
+.active .reel { animation: spin 2.4s linear infinite; }
+.active .bar { animation: level 700ms ease-in-out infinite alternate; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes level { from { height: 6px; } to { height: 40px; } }
+@media (prefers-reduced-motion: reduce) {
+  .active .reel, .active .bar { animation: none; }
+}
+.time { font-family: var(--font-sans); font-size: var(--fs-heading); font-variant-numeric: tabular-nums; color: var(--color-ink); }
+.status { margin: 0; font-size: var(--fs-body); font-weight: 700; color: var(--color-neutral); }
+.error { margin: 0; padding: 10px 14px; border-radius: 12px; background: var(--color-failed-bg); color: var(--color-failed); font-size: var(--fs-body); line-height: 1.5; text-align: center; }
+.controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+.preview { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; }
+.audio { width: 100%; min-height: var(--tap); }
+.fallback { display: flex; justify-content: center; }
+.fileInput { display: none; }
