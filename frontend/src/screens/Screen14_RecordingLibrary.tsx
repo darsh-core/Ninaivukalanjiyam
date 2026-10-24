@@ -33,7 +33,7 @@ export const Screen14_RecordingLibrary: React.FC = () => {
 
   const [recordings, setRecordings] = useState<Recording[]>([]);
   const [narrators, setNarrators] = useState<Narrator[]>([]);
-  const [selectedNarratorId, setSelectedNarratorId] = useState<string>(activeNarrator?.id || '');
+  const [selectedNarratorId, setSelectedNarratorId] = useState<string>('');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'reviewed' | 'pending'>('all');
   const [loading, setLoading] = useState(true);
@@ -56,6 +56,7 @@ export const Screen14_RecordingLibrary: React.FC = () => {
           narrator_id: selectedNarratorId || undefined,
           status: statusFilter === 'all' ? undefined : statusFilter,
           createdBy: user?.role === 'admin' ? undefined : user?.id,
+          user_email: user?.role === 'admin' ? undefined : user?.email,
         }),
         getNarrators(),
       ]);
@@ -94,12 +95,15 @@ export const Screen14_RecordingLibrary: React.FC = () => {
   }, [selectedNarratorId, statusFilter, user?.id, user?.email]);
 
   const filteredRecordings = recordings.filter((r) => {
+    if (!search.trim()) return true;
     const q = search.toLowerCase();
     return (
       (r.question_tamil && r.question_tamil.toLowerCase().includes(q)) ||
+      (r.question_english && r.question_english.toLowerCase().includes(q)) ||
       (r.transcript_text && r.transcript_text.toLowerCase().includes(q)) ||
       (r.full_name_tamil && r.full_name_tamil.toLowerCase().includes(q)) ||
-      (r.full_name_english && r.full_name_english.toLowerCase().includes(q))
+      (r.full_name_english && r.full_name_english.toLowerCase().includes(q)) ||
+      (r.session_title && r.session_title.toLowerCase().includes(q))
     );
   });
 
@@ -131,32 +135,10 @@ export const Screen14_RecordingLibrary: React.FC = () => {
         </div>
       </div>
 
-      {/* Search and Filters: Separate Independent Elements (as in Screenshot) */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          marginBottom: '28px',
-          flexWrap: 'wrap',
-          width: '100%',
-        }}
-      >
+      {/* Search and Filters: Responsive Clean Bar */}
+      <div className="export-filter-bar">
         {/* 1. Left: Search Input Box */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            flex: '1 1 320px',
-            minWidth: '220px',
-            background: '#FFFFFF',
-            border: '1px solid #E5E7EB',
-            borderRadius: '8px',
-            padding: '9px 14px',
-            boxShadow: '0 1px 2px rgba(0, 0, 0, 0.04)',
-          }}
-        >
+        <div className="export-filter-search">
           <Search size={16} color="#4B5563" style={{ flexShrink: 0 }} />
           <input
             type="text"
@@ -180,19 +162,7 @@ export const Screen14_RecordingLibrary: React.FC = () => {
         </div>
 
         {/* 2. Middle: Profile Icon with Narrator Select Box */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            background: '#FFFFFF',
-            border: '1px solid #E5E7EB',
-            borderRadius: '8px',
-            padding: '9px 14px',
-            boxShadow: '0 1px 2px rgba(0, 0, 0, 0.04)',
-            flexShrink: 0,
-          }}
-        >
+        <div className="export-filter-select">
           <User size={16} color="#4B5563" style={{ flexShrink: 0 }} />
           <select
             value={selectedNarratorId}
@@ -218,19 +188,7 @@ export const Screen14_RecordingLibrary: React.FC = () => {
         </div>
 
         {/* 3. Right: Status Filter Box */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            background: '#FFFFFF',
-            border: '1px solid #E5E7EB',
-            borderRadius: '8px',
-            padding: '9px 14px',
-            boxShadow: '0 1px 2px rgba(0, 0, 0, 0.04)',
-            flexShrink: 0,
-          }}
-        >
+        <div className="export-filter-select">
           <ListFilter size={16} color="#4B5563" style={{ flexShrink: 0 }} />
           <select
             value={statusFilter}
@@ -307,11 +265,26 @@ export const Screen14_RecordingLibrary: React.FC = () => {
         >
           <Headphones size={40} color="var(--slate-sand)" style={{ margin: '0 auto 16px' }} />
           <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--slate-taupe-dark)', marginBottom: '8px' }}>
-            No Recordings Match Your Filter
+            {uiLanguage === 'ta' ? 'பதிவுகள் எதுவும் பொருந்தவில்லை' : 'No Recordings Match Your Filter'}
           </h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
-            Try clearing filters or record a new session answer.
+          <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '16px' }}>
+            {uiLanguage === 'ta'
+              ? 'வடிப்பானை நீக்க அல்லது புதிய பதிவை உருவாக்க முயற்சிக்கவும்.'
+              : 'Try clearing filters or record a new session answer.'}
           </p>
+          {(selectedNarratorId || statusFilter !== 'all' || search) && (
+            <button
+              type="button"
+              className="btn-pill-primary"
+              onClick={() => {
+                setSelectedNarratorId('');
+                setStatusFilter('all');
+                setSearch('');
+              }}
+            >
+              {uiLanguage === 'ta' ? 'அனைத்து பதிவுகளையும் காட்டுக (Show All)' : 'Show All Recordings'}
+            </button>
+          )}
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>

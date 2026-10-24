@@ -5,7 +5,7 @@ const geminiService = require('../services/geminiService');
 
 async function getAllRecordings(req, res) {
     try {
-        const { narrator_id, session_id, status, createdBy } = req.query;
+        const { narrator_id, session_id, status, createdBy, user_email } = req.query;
 
         let query = `
             SELECT 
@@ -48,9 +48,22 @@ async function getAllRecordings(req, res) {
             params.push(session_id);
             query += ` AND s.id = $${params.length}`;
         }
-        if (createdBy) {
-            params.push(createdBy);
-            query += ` AND n.created_by = $${params.length}`;
+        
+        // Flexible owner matching by user UUID, email or subquery
+        const emailFilter = user_email || (createdBy && createdBy.includes('@') ? createdBy : null);
+        if (createdBy && !createdBy.includes('@')) {
+            if (emailFilter) {
+                params.push(createdBy, emailFilter.trim().toLowerCase());
+                const idIdx = params.length - 1;
+                const emailIdx = params.length;
+                query += ` AND (n.created_by = $${idIdx} OR LOWER(u.email) = $${emailIdx} OR n.created_by IN (SELECT id FROM users WHERE LOWER(email) = $${emailIdx}))`;
+            } else {
+                params.push(createdBy);
+                query += ` AND (n.created_by = $${params.length} OR n.created_by IN (SELECT id FROM users WHERE LOWER(email) = LOWER($${params.length})))`;
+            }
+        } else if (emailFilter) {
+            params.push(emailFilter.trim().toLowerCase());
+            query += ` AND (LOWER(u.email) = $${params.length} OR n.created_by IN (SELECT id FROM users WHERE LOWER(email) = $${params.length}))`;
         }
         if (status) {
             if (status === 'reviewed') {

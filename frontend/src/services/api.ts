@@ -217,6 +217,7 @@ export async function getAllRecordings(params?: {
   session_id?: string;
   status?: string;
   createdBy?: string;
+  user_email?: string;
   sort?: 'asc' | 'desc';
 }): Promise<Recording[]> {
   const searchParams = new URLSearchParams();
@@ -224,6 +225,7 @@ export async function getAllRecordings(params?: {
   if (params?.session_id) searchParams.append('session_id', params.session_id);
   if (params?.status) searchParams.append('status', params.status);
   if (params?.createdBy) searchParams.append('createdBy', params.createdBy);
+  if (params?.user_email) searchParams.append('user_email', params.user_email);
   if (params?.sort) searchParams.append('sort', params.sort);
 
   const res = await fetch(`${API_BASE}/recordings?${searchParams.toString()}`, {

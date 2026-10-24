@@ -38,8 +38,13 @@ async function getAllNarrators(filters = {}) {
     const params = [];
 
     if (filters.createdBy) {
-        params.push(filters.createdBy);
-        whereClause += ` AND n.created_by = $${params.length}`;
+        if (filters.createdBy.includes('@')) {
+            params.push(filters.createdBy.trim().toLowerCase());
+            whereClause += ` AND (LOWER(u.email) = $${params.length} OR n.created_by IN (SELECT id FROM users WHERE LOWER(email) = $${params.length}))`;
+        } else {
+            params.push(filters.createdBy);
+            whereClause += ` AND (n.created_by = $${params.length} OR n.created_by IN (SELECT id FROM users WHERE LOWER(email) = (SELECT LOWER(email) FROM users WHERE id = $${params.length})))`;
+        }
     }
 
     const query = `
