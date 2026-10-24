@@ -39,6 +39,7 @@ function Topics({ id }: { id: string }) {
   const [topics, setTopics] = useState<Topic[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [pickFailed, setPickFailed] = useState(false);
   const token = useRef(0);
 
   const load = useCallback(() => {
@@ -79,6 +80,7 @@ function Topics({ id }: { id: string }) {
   const pick = async (stage: string) => {
     if (busy) return;
     setBusy(true);
+    setPickFailed(false);
     try {
       const [bank, sessions] = await Promise.all([getQuestionBank(), getAllSessions(id)]);
       const details = await loadDetails(sessions);
@@ -108,7 +110,7 @@ function Topics({ id }: { id: string }) {
       navigate(`/elders/${id}/consent?next=${encodeURIComponent(next)}`);
     } catch {
       setBusy(false);
-      setFailed(true);
+      setPickFailed(true);
     }
   };
 
@@ -116,16 +118,7 @@ function Topics({ id }: { id: string }) {
     return (
       <div role="alert" className={s.error}>
         <p>{tr('இந்தப் பக்கத்தை ஏற்ற முடியவில்லை.', 'Could not load this page.')}</p>
-        <Button
-          variant="secondary"
-          size="lg"
-          onClick={() => {
-            setBusy(false);
-            load();
-          }}
-        >
-          {tr('மீண்டும் முயற்சி', 'Try again')}
-        </Button>
+        <Button variant="secondary" size="lg" onClick={load}>{tr('மீண்டும் முயற்சி', 'Try again')}</Button>
       </div>
     );
   }
@@ -134,6 +127,11 @@ function Topics({ id }: { id: string }) {
   return (
     <div className={s.page}>
       <h1 className={s.title}>{tr('எதைப் பற்றிப் பேசலாம்?', 'What shall we talk about?')}</h1>
+      {pickFailed && (
+        <div role="alert" className={s.error}>
+          <p>{tr('தொடங்க முடியவில்லை. தலைப்பை மீண்டும் தேர்ந்தெடுக்கவும்.', 'Could not start. Please pick the topic again.')}</p>
+        </div>
+      )}
       <ul className={s.list}>
         {topics.map((t) => {
           const l = topicLabel(t.stage);
@@ -146,7 +144,7 @@ function Topics({ id }: { id: string }) {
                 disabled={busy}
                 onClick={() => pick(t.stage)}
               >
-                <Bi ta={`${finished ? '✓ ' : ''}${l.ta}`} en={l.en} as="question" />
+                <Bi ta={`${finished ? '✓ ' : ''}${l.ta}`} en={l.en} as="question" inline />
                 <span className={s.count}>
                   {finished
                     ? tr('அனைத்தும் முடிந்தது', 'All answered')

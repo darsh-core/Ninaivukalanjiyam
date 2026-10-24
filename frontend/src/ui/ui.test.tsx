@@ -25,6 +25,14 @@ const wrap = (node: React.ReactNode) => (
 beforeEach(() => localStorage.clear());
 
 describe('Bi', () => {
+  it('renders spans only when inline, so it is valid inside a button', () => {
+    const { container } = render(wrap(<button><Bi ta="கேள்வி" en="Question" inline /></button>));
+    act(() => ui.setLang('en'));
+    expect(container.querySelector('button div')).toBeNull();
+    expect(container.querySelectorAll('button span').length).toBe(3);
+    expect(screen.getByText('Question')).toBeInTheDocument();
+  });
+
   it('renders Tamil without null/undefined when en is null in English mode', () => {
     const { container } = render(wrap(<Bi ta="கேள்வி" en={null} />));
     act(() => ui.setLang('en'));
