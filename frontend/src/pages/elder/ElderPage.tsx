@@ -1,5 +1,5 @@
 import { Navigate, useParams } from 'react-router-dom';
-import { Placeholder } from './Placeholder';
+import { Placeholder } from '../Placeholder';
 
 export const ELDER_SECTIONS = ['interviews', 'recordings', 'timeline', 'story', 'export'] as const;
 

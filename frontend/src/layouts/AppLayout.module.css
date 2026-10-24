@@ -10,3 +10,12 @@
 .item { display: flex; align-items: center; min-height: var(--tap); padding: 0 14px; border-radius: 10px; color: var(--color-ink); text-decoration: none; background: transparent; font-size: var(--fs-body); text-align: left; }
 .item:hover { background: var(--color-neutral-bg); }
 .main { max-width: 1040px; margin: 0 auto; padding: 16px; }
+.brand { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.right { flex-shrink: 0; min-width: 0; }
+.badge { flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 640px) {
+  .header { padding: 8px 8px 8px 12px; gap: 4px; }
+  .brand { font-size: var(--fs-body); }
+  .right { gap: 0; }
+  .badge { padding: 2px 8px; }
+}

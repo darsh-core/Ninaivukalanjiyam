@@ -33,10 +33,8 @@ export function SignInPage() {
     try {
       if (creating) await register(name.trim(), email.trim(), password);
       else await login(email.trim(), password);
-      navigate(target, { replace: true });
     } catch (err) {
       setError(err instanceof Error && err.message ? err.message : tr('உள்நுழைய முடியவில்லை. மீண்டும் முயலுங்கள்.', 'Could not sign in. Please try again.'));
-    } finally {
       setBusy(false);
     }
   };

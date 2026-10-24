@@ -62,6 +62,16 @@ describe('App routing', () => {
     expect(screen.getByRole('menuitem', { name: 'வெளியேறு' })).toBeInTheDocument();
   });
 
+  it('returns to the originally requested route after sign-in', async () => {
+    const user = userEvent.setup();
+    renderAt('/elders/n-rajeshwari/recordings');
+    await user.click(await screen.findByRole('link', { name: /உள்நுழை/ }));
+    await user.type(await screen.findByLabelText(/மின்னஞ்சல்/), 'a@b.com');
+    await user.type(screen.getByLabelText(/கடவுச்சொல்/), 'pw');
+    await user.click(screen.getByRole('button', { name: /உள்நுழை/ }));
+    expect(await screen.findByText('Elder: recordings')).toBeInTheDocument();
+  });
+
   it('redirects /elders/:id to interviews and unknown paths to /', async () => {
     signIn();
     const { unmount } = renderAt('/elders/n-x');
