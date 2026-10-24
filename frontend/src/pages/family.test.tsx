@@ -14,6 +14,8 @@ vi.mock('../services', async () => {
 import { FamilyHomePage } from './FamilyHomePage';
 import { ElderFormPage } from './ElderFormPage';
 import { UiProvider } from '../context/UiContext';
+import { AuthProvider } from '../context/AuthContext';
+import { getSessionById } from '../services/mockApi';
 import { resetMockStore, setMockDelay } from '../services/mockStore';
 
 function Where() {
@@ -23,6 +25,7 @@ function Where() {
 const renderAt = (path: string) =>
   render(
     <MemoryRouter initialEntries={[path]}>
+      <AuthProvider>
       <UiProvider>
         <Routes>
           <Route path="/" element={<FamilyHomePage />} />
@@ -31,6 +34,7 @@ const renderAt = (path: string) =>
           <Route path="*" element={<Where />} />
         </Routes>
       </UiProvider>
+      </AuthProvider>
     </MemoryRouter>,
   );
 
@@ -43,14 +47,32 @@ beforeEach(() => {
 });
 
 describe('Family home', () => {
-  it('lists narrators and shows the Continue card', async () => {
+  it("lists narrators and a Today's question card per elder", async () => {
     renderAt('/');
-    expect(await screen.findByText('ராஜேஸ்வரி பாட்டி')).toBeInTheDocument();
-    expect(screen.getByText('சண்முகம் தாத்தா')).toBeInTheDocument();
-    const cont = screen.getByRole('link', { name: /நேர்காணலைத் தொடர்/ });
-    expect(cont).toHaveTextContent('ராஜேஸ்வரி');
-    expect(cont).toHaveAttribute('href', '/elders/n-rajeshwari/consent?next=%2Finterview%2Fs-r2');
+    expect(await screen.findByRole('heading', { name: 'ராஜேஸ்வரி பாட்டி' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'சண்முகம் தாத்தா' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'இன்றைய கேள்வி' })).toBeInTheDocument();
+    // Rajeshwari resumes her open session at its first unanswered question.
+    const s2 = await getSessionById('s-r2');
+    const sorted = [...(s2.questions ?? [])].sort((a, b) => a.display_order - b.display_order);
+    const i = sorted.findIndex((q) => q.status === 'pending' || q.status === 'asked');
+    const ask = await screen.findByRole('link', { name: /பாட்டி — இப்போது கேளுங்கள்/ });
+    expect(ask).toHaveAttribute('href', `/elders/n-rajeshwari/consent?next=${encodeURIComponent(`/interview/s-r2?q=${i + 1}`)}`);
+    expect(screen.getByText(sorted[i].question_tamil)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /குடும்பப் பெரியவரைச் சேர்/ })).toHaveAttribute('href', '/elders/new');
+  });
+
+  it("starts an interview from a Today's question card when there is no open session", async () => {
+    const user = userEvent.setup();
+    renderAt('/');
+    await user.click(await screen.findByRole('button', { name: /தாத்தா — இப்போது கேளுங்கள்/ }));
+    await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('/elders/n-shanmugam/consent'));
+  });
+
+  it('greets the signed-in family member', async () => {
+    localStorage.setItem('nk_user', JSON.stringify({ id: 'u-demo', fullName: 'அன்பரசன் குமார்', email: 'a@b.c', role: 'assistant' }));
+    renderAt('/');
+    expect(await screen.findByText('மீண்டும் வருக, அன்பரசன்!')).toBeInTheDocument();
   });
 
   it('shows an error with a retry that reloads', async () => {
@@ -60,7 +82,7 @@ describe('Family home', () => {
     expect(await screen.findByRole('alert')).toBeInTheDocument();
     window.history.replaceState({}, '', '/');
     await user.click(screen.getByRole('button', { name: /மீண்டும் முயற்சி|Try again/ }));
-    expect(await screen.findByText('ராஜேஸ்வரி பாட்டி')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'ராஜேஸ்வரி பாட்டி' })).toBeInTheDocument();
   });
 });
 
@@ -89,7 +111,7 @@ describe('Elder form', () => {
     await screen.findByTestId('where');
     unmount();
     renderAt('/');
-    expect(await screen.findByText('லட்சுமி பாட்டி')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'லட்சுமி பாட்டி' })).toBeInTheDocument();
   });
 
   it('validates birth year', async () => {
@@ -142,7 +164,8 @@ describe('Language toggle', () => {
     localStorage.setItem('nk_ui_lang', 'en');
     const { unmount } = renderAt('/');
     expect(await screen.findByRole('heading', { name: 'Our family' })).toBeInTheDocument();
-    expect(await screen.findByRole('link', { name: /Continue interview/ })).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: /Ask பாட்டி now/ })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: "Today's question" })).toBeInTheDocument();
     unmount();
     renderAt('/elders/new');
     expect(screen.getByLabelText('Tamil name')).toBeInTheDocument();

@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getNarrators, getAllSessions } from '../services';
-import type { Narrator, InterviewSession } from '../types';
+import { getNarrators } from '../services';
+import type { Narrator } from '../types';
 import { useUi } from '../context/UiContext';
+import { useAuth } from '../context/AuthContext';
+import { TodayCard } from './TodayCard';
 import { Button } from '../ui/Button/Button';
 import { Card } from '../ui/Card/Card';
 import { EmptyState } from '../ui/EmptyState/EmptyState';
@@ -14,8 +16,9 @@ import s from './FamilyHomePage.module.css';
 
 export function FamilyHomePage() {
   const { lang, tr } = useUi();
+  const { user } = useAuth();
+  const firstName = user?.fullName?.trim().split(/\s+/)[0];
   const [narrators, setNarrators] = useState<Narrator[] | null>(null);
-  const [sessions, setSessions] = useState<InterviewSession[]>([]);
   const [failed, setFailed] = useState(false);
 
   const token = useRef(0);
@@ -24,11 +27,9 @@ export function FamilyHomePage() {
     const mine = ++token.current;
     setFailed(false);
     setNarrators(null);
-    Promise.all([getNarrators(), getAllSessions()])
-      .then(([n, ss]) => {
-        if (mine !== token.current) return;
-        setNarrators(n);
-        setSessions(ss);
+    getNarrators()
+      .then((n) => {
+        if (mine === token.current) setNarrators(n);
       })
       .catch(() => {
         if (mine === token.current) setFailed(true);
@@ -42,16 +43,11 @@ export function FamilyHomePage() {
     };
   }, [load]);
 
-  const resumable = narrators
-    ? sessions
-        .filter((x) => x.status === 'in_progress' || x.status === 'paused')
-        .sort((a, b) => (b.last_activity_at ?? '').localeCompare(a.last_activity_at ?? ''))
-        .find((x) => narrators.some((n) => n.id === x.narrator_id))
-    : undefined;
-  const resumeNarrator = resumable && narrators?.find((n) => n.id === resumable.narrator_id);
-
   return (
     <div className={s.page}>
+      {firstName && (
+        <p className={s.welcome}>{tr(`மீண்டும் வருக, ${firstName}!`, `Welcome back, ${firstName}!`)}</p>
+      )}
       <PageHeader title={tr('எங்கள் குடும்பம்', 'Our family')} subtitle={lang === 'en' ? 'Whose memories shall we keep today?' : undefined} />
 
       {failed && (
@@ -71,10 +67,15 @@ export function FamilyHomePage() {
 
       {narrators && (
         <>
-          {resumable && resumeNarrator && (
-            <Link to={`/elders/${resumeNarrator.id}/consent?next=${encodeURIComponent(`/interview/${resumable.id}`)}`} className={s.continue}>
-              ▶ {tr('நேர்காணலைத் தொடர்', 'Continue interview')}: {narratorName(resumeNarrator)} — {resumable.title}
-            </Link>
+          {narrators.length > 0 && (
+            <section className={s.today} aria-labelledby="today-title">
+              <h2 id="today-title" className={s.todayTitle}>{tr('இன்றைய கேள்வி', "Today's question")}</h2>
+              <ul className={s.todayList}>
+                {narrators.map((n) => (
+                  <li key={n.id}><TodayCard narrator={n} /></li>
+                ))}
+              </ul>
+            </section>
           )}
           {narrators.length === 0 && (
             <EmptyState

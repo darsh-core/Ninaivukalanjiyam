@@ -1,32 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import {
-  addQuestionToSession, createSession, getAllSessions, getQuestionBank, getSessionById, getTopicProgress,
-} from '../../services';
-import type { BankQuestion, InterviewSession, SessionQuestion } from '../../types';
+import { getAllSessions, getQuestionBank, getTopicProgress } from '../../services';
 import { useUi } from '../../context/UiContext';
 import { Bi } from '../../ui/Bi/Bi';
 import { Button } from '../../ui/Button/Button';
 import { topicLabel } from './topicLabels';
+import { answeredIds, loadDetails, startLifeStage } from './nextQuestion';
 import s from './TopicsPage.module.css';
 
 interface Topic { stage: string; left: number; total: number }
-
-const unfinishedOf = (sessions: InterviewSession[]) =>
-  sessions
-    .filter((x) => x.status === 'in_progress' || x.status === 'paused')
-    .sort((a, b) => (b.last_activity_at ?? '').localeCompare(a.last_activity_at ?? ''))[0];
-
-async function loadDetails(sessions: InterviewSession[]): Promise<InterviewSession[]> {
-  return Promise.all(sessions.map((x) => getSessionById(x.id)));
-}
-
-const answeredIds = (details: InterviewSession[]) =>
-  new Set(
-    details.flatMap((d) => d.questions ?? [])
-      .filter((q) => q.status === 'answered' && q.question_id)
-      .map((q) => q.question_id as string),
-  );
 
 export function TopicsPage() {
   const { id } = useParams();
@@ -82,32 +64,7 @@ function Topics({ id }: { id: string }) {
     setBusy(true);
     setPickFailed(false);
     try {
-      const [bank, sessions] = await Promise.all([getQuestionBank(), getAllSessions(id)]);
-      const details = await loadDetails(sessions);
-      const done = answeredIds(details);
-      let session = unfinishedOf(details);
-      if (!session) {
-        session = await createSession({
-          narrator_id: id, title: topicLabel(stage).ta, interview_mode: 'structured', preferred_language: 'ta',
-        });
-      }
-      const existing: SessionQuestion[] = session.questions ?? [];
-      const present = new Set(existing.map((q) => q.question_id).filter(Boolean));
-      const toAdd: BankQuestion[] = bank.data
-        .filter((b) => b.life_stage === stage && !done.has(b.id) && !present.has(b.id))
-        .sort((a, b) => a.display_order - b.display_order);
-      const added: SessionQuestion[] = [];
-      for (const b of toAdd) {
-        added.push(await addQuestionToSession(session.id, {
-          question_tamil: b.question_tamil, question_english: b.question_english, question_id: b.id,
-          question_type: 'structured',
-        }));
-      }
-      const all = [...existing, ...added].sort((a, b) => a.display_order - b.display_order);
-      const target = added[0] ?? all.find((q) => q.status === 'pending' || q.status === 'asked');
-      const index = target ? all.findIndex((q) => q.id === target.id) + 1 : 1;
-      const next = `/interview/${session.id}?q=${index}`;
-      navigate(`/elders/${id}/consent?next=${encodeURIComponent(next)}`);
+      navigate(await startLifeStage(id, stage));
     } catch {
       setBusy(false);
       setPickFailed(true);
