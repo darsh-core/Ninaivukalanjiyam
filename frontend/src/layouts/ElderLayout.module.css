@@ -1,0 +1,5 @@
+.shell { min-height: 100vh; }
+.header { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px; }
+.exit { display: inline-flex; align-items: center; min-height: var(--tap); padding: 0 14px; border-radius: var(--radius-pill); color: var(--color-terracotta); font-weight: 600; font-size: var(--fs-button); text-decoration: none; }
+.exit:hover { background: var(--color-neutral-bg); }
+.main { max-width: 760px; margin: 0 auto; padding: 16px; }
