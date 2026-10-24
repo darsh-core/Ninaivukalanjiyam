@@ -11,3 +11,6 @@ build/
 *.pem
 backend/uploads/
 
+
+# Visual brainstorming mockups
+.superpowers/
