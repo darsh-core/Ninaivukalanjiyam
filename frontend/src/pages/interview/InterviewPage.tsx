@@ -6,6 +6,7 @@ import {
 } from '../../services';
 import type { InterviewSession, SessionQuestion } from '../../types';
 import { useUi } from '../../context/UiContext';
+import { useElderExit } from '../../layouts/elderExit';
 import { AudioPlayer } from '../../ui/AudioPlayer/AudioPlayer';
 import { Bi } from '../../ui/Bi/Bi';
 import { Button } from '../../ui/Button/Button';
@@ -97,6 +98,8 @@ function Interview({ sessionId }: { sessionId: string }) {
     };
   }, [load]);
 
+  useElderExit(session ? `/elders/${session.narrator_id}/interviews` : null);
+
   const questions = useMemo(() => (session ? sorted(session) : []), [session]);
   const raw = Number(params.get('q'));
   const valid = Number.isInteger(raw) && raw >= 1 && raw <= questions.length;
@@ -182,6 +185,8 @@ function Interview({ sessionId }: { sessionId: string }) {
   const save = async (blob: Blob, seconds: number) => {
     if (!question) return;
     await uploadRecordingBlob(question.id, blob, seconds);
+    // The take is saved. The recorder unmounts in the refresh below before it can report "clean", so clear it here.
+    setDirty(false);
     setAnotherFor(null);
     try {
       await refresh();

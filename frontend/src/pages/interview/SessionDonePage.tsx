@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { getNarratorById, getSessionById } from '../../services';
 import type { InterviewSession, NarratorDetail } from '../../types';
 import { useUi } from '../../context/UiContext';
+import { useElderExit } from '../../layouts/elderExit';
 import { Button } from '../../ui/Button/Button';
 import { Card } from '../../ui/Card/Card';
 import { narratorName } from '../../utils/narrator';
@@ -20,6 +21,7 @@ function Done({ sessionId }: { sessionId: string }) {
   const [narrator, setNarrator] = useState<NarratorDetail | null>(null);
   const [failed, setFailed] = useState(false);
   const token = useRef(0);
+  useElderExit(session ? `/elders/${session.narrator_id}/interviews` : null);
 
   const load = useCallback(() => {
     const mine = ++token.current;

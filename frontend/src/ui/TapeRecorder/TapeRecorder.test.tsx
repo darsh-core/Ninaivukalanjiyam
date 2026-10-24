@@ -122,8 +122,9 @@ describe('TapeRecorder hardening', () => {
     fireEvent.click(screen.getByRole('button', { name: /^■/ }));
     fireEvent.click(await screen.findByRole('button', { name: /^சேமி/ }));
     await screen.findByText('சேமிக்கப்பட்டது');
-    expect(onDirtyChange).toHaveBeenLastCalledWith(false);
-    expect(remove.mock.calls.some((c) => c[0] === 'beforeunload')).toBe(true);
+    // dirty is reported from a passive effect, which can run just after the text appears
+    await waitFor(() => expect(onDirtyChange).toHaveBeenLastCalledWith(false));
+    await waitFor(() => expect(remove.mock.calls.some((c) => c[0] === 'beforeunload')).toBe(true));
   });
 
   it('excludes paused time from the saved duration', async () => {

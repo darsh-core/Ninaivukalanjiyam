@@ -8,6 +8,7 @@ vi.mock('../../services', async () => {
   return {
     ...mock,
     uploadRecordingBlob: vi.fn(mock.uploadRecordingBlob),
+    synthesizeSpeech: vi.fn(mock.synthesizeSpeech),
     updateQuestionStatus: vi.fn(mock.updateQuestionStatus),
     updateSessionStatus: vi.fn(mock.updateSessionStatus),
     addQuestionToSession: vi.fn(mock.addQuestionToSession),
@@ -69,6 +70,7 @@ beforeEach(() => {
   vi.mocked(services.updateSessionStatus).mockClear();
   vi.mocked(services.addQuestionToSession).mockClear();
   vi.mocked(services.getAIFollowUpQuestions).mockClear();
+  vi.mocked(services.synthesizeSpeech).mockClear();
 });
 afterEach(() => {
   cleanup();
@@ -193,5 +195,132 @@ describe('Interview question screen', () => {
     window.history.replaceState({}, '', '/?mockError=getSessionById');
     renderAt('/interview/s-r2?q=1');
     expect(await screen.findByRole('button', { name: /மீண்டும் முயற்சி/ })).toBeInTheDocument();
+  });
+});
+
+async function recordAndSave() {
+  await startRecording();
+  fireEvent.click(screen.getByRole('button', { name: /^■/ }));
+  fireEvent.click(await screen.findByRole('button', { name: /^சேமி/ }));
+  await screen.findByRole('button', { name: /இன்னொரு பதிவு/ });
+}
+
+describe('Interview after saving', () => {
+  it('Next after a successful save does not ask about an unsaved take', async () => {
+    renderAt('/interview/s-r2?q=3');
+    await recordAndSave();
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    fireEvent.click(screen.getByRole('button', { name: /அடுத்தது/ }));
+    expect(confirm).not.toHaveBeenCalled();
+    await waitFor(() => expect(loc()).toBe('/interview/s-r2?q=4'));
+  });
+
+  it('Record another take, save, then Next does not ask either', async () => {
+    renderAt('/interview/s-r2?q=1');
+    fireEvent.click(await screen.findByRole('button', { name: /இன்னொரு பதிவு/ }));
+    await recordAndSave();
+    expect(vi.mocked(services.uploadRecordingBlob).mock.calls[0][0]).toBe('q-r2-1');
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    fireEvent.click(screen.getByRole('button', { name: /அடுத்தது/ }));
+    expect(confirm).not.toHaveBeenCalled();
+    await waitFor(() => expect(loc()).toBe('/interview/s-r2?q=2'));
+  });
+});
+
+describe('Exit link', () => {
+  it('goes to the elder page of this session on the interview and done pages', async () => {
+    renderAt('/interview/s-r2?q=3');
+    await screen.findByText(await questionText(3));
+    await waitFor(() =>
+      expect(screen.getByRole('link', { name: /வெளியேறு/ })).toHaveAttribute('href', '/elders/n-rajeshwari/interviews'),
+    );
+    cleanup();
+    renderAt('/interview/s-r2/done');
+    await screen.findByText(/நினைவுகளைப் பகிர்ந்தீர்கள்/);
+    await waitFor(() =>
+      expect(screen.getByRole('link', { name: /வெளியேறு/ })).toHaveAttribute('href', '/elders/n-rajeshwari/interviews'),
+    );
+  });
+
+  it('keeps the elder-id exit on the topics page', async () => {
+    renderAt('/elders/n-shanmugam/topics');
+    expect(await screen.findByRole('link', { name: /வெளியேறு/ })).toHaveAttribute('href', '/elders/n-shanmugam');
+  });
+});
+
+describe('Hearing the question', () => {
+  class FakeUtterance {
+    text: string;
+    lang = '';
+    rate = 1;
+    onend: (() => void) | null = null;
+    onerror: (() => void) | null = null;
+    constructor(text: string) {
+      this.text = text;
+    }
+  }
+  let spoken: FakeUtterance[];
+  let synth: { speak: ReturnType<typeof vi.fn>; cancel: ReturnType<typeof vi.fn> };
+  const g = globalThis as unknown as Record<string, unknown>;
+
+  beforeEach(() => {
+    spoken = [];
+    synth = { speak: vi.fn((u: FakeUtterance) => void spoken.push(u)), cancel: vi.fn() };
+    Object.defineProperty(window, 'speechSynthesis', { value: synth, configurable: true, writable: true });
+    g.SpeechSynthesisUtterance = FakeUtterance;
+  });
+  afterEach(() => {
+    delete (window as unknown as Record<string, unknown>).speechSynthesis;
+    delete g.SpeechSynthesisUtterance;
+  });
+
+  it('asks the speech service for the Tamil text, then falls back to browser speech in ta-IN', async () => {
+    const text = await questionText(3);
+    renderAt('/interview/s-r2?q=3');
+    fireEvent.click(await screen.findByRole('button', { name: /கேள்வியைக் கேள்/ }));
+    await waitFor(() => expect(synth.speak).toHaveBeenCalledTimes(1));
+    expect(services.synthesizeSpeech).toHaveBeenCalledWith(text);
+    expect(spoken[0].text).toBe(text);
+    expect(spoken[0].lang).toBe('ta-IN');
+    expect(spoken[0].rate).toBe(1);
+  });
+
+  it('speaks Tamil even in English mode', async () => {
+    localStorage.setItem('nk_ui_lang', 'en');
+    const text = await questionText(3);
+    renderAt('/interview/s-r2?q=3');
+    fireEvent.click(await screen.findByRole('button', { name: /Hear the question/ }));
+    await waitFor(() => expect(synth.speak).toHaveBeenCalledTimes(1));
+    expect(services.synthesizeSpeech).toHaveBeenCalledWith(text);
+    expect(spoken[0].text).toBe(text);
+    expect(spoken[0].lang).toBe('ta-IN');
+  });
+
+  it('uses rate 0.8 when slow is chosen', async () => {
+    renderAt('/interview/s-r2?q=3');
+    fireEvent.click(await screen.findByRole('button', { name: /மெதுவாக/ }));
+    fireEvent.click(screen.getByRole('button', { name: /கேள்வியைக் கேள்/ }));
+    await waitFor(() => expect(synth.speak).toHaveBeenCalledTimes(1));
+    expect(spoken[0].rate).toBe(0.8);
+  });
+
+  it('disables the recorder while speaking and enables it when speech ends', async () => {
+    renderAt('/interview/s-r2?q=3');
+    fireEvent.click(await screen.findByRole('button', { name: /கேள்வியைக் கேள்/ }));
+    await waitFor(() => expect(synth.speak).toHaveBeenCalledTimes(1));
+    expect(screen.getByRole('button', { name: /பதிவைத் தொடங்கு/ })).toBeDisabled();
+    act(() => spoken[0].onend?.());
+    expect(screen.getByRole('button', { name: /பதிவைத் தொடங்கு/ })).toBeEnabled();
+  });
+
+  it('cancels speech when moving to another question', async () => {
+    renderAt('/interview/s-r2?q=3');
+    fireEvent.click(await screen.findByRole('button', { name: /கேள்வியைக் கேள்/ }));
+    await waitFor(() => expect(synth.speak).toHaveBeenCalledTimes(1));
+    const before = synth.cancel.mock.calls.length;
+    fireEvent.click(screen.getByRole('button', { name: /அடுத்தது/ }));
+    await waitFor(() => expect(loc()).toBe('/interview/s-r2?q=4'));
+    expect(synth.cancel.mock.calls.length).toBeGreaterThan(before);
+    expect(screen.getByRole('button', { name: /பதிவைத் தொடங்கு/ })).toBeEnabled();
   });
 });
