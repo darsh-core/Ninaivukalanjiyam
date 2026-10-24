@@ -9,10 +9,8 @@ import { EmptyState } from '../ui/EmptyState/EmptyState';
 import { HandNote } from '../ui/HandNote/HandNote';
 import { PageHeader } from '../ui/PageHeader/PageHeader';
 import { PhotoFrame } from '../ui/PhotoFrame/PhotoFrame';
+import { narratorName, narratorInitials } from '../utils/narrator';
 import s from './FamilyHomePage.module.css';
-
-export const narratorName = (n: Narrator) => n.full_name_tamil || n.full_name_english || '';
-export const narratorInitials = (n: Narrator) => Array.from(narratorName(n))[0] ?? '?';
 
 export function FamilyHomePage() {
   const { lang, tr } = useUi();

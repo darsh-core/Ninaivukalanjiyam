@@ -69,13 +69,14 @@ describe('App routing', () => {
     await user.type(await screen.findByLabelText(/மின்னஞ்சல்/), 'a@b.com');
     await user.type(screen.getByLabelText(/கடவுச்சொல்/), 'pw');
     await user.click(screen.getByRole('button', { name: /உள்நுழை/ }));
-    expect(await screen.findByText('Elder: recordings')).toBeInTheDocument();
+    expect(await screen.findByText('Recordings section', {}, { timeout: 4000 })).toBeInTheDocument();
   });
 
   it('redirects /elders/:id to interviews and unknown paths to /', async () => {
     signIn();
-    const { unmount } = renderAt('/elders/n-x');
-    expect(await screen.findByText('Elder: interviews')).toBeInTheDocument();
+    const { unmount } = renderAt('/elders/n-rajeshwari');
+    expect(await screen.findByRole('heading', { level: 1, name: 'ராஜேஸ்வரி பாட்டி' }, { timeout: 4000 })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'நேர்காணல்கள்' })).toHaveAttribute('aria-current', 'page');
     unmount();
     renderAt('/nope');
     expect(await screen.findByText(/எங்கள் குடும்பம்/)).toBeInTheDocument();
